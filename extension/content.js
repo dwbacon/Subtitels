@@ -129,7 +129,7 @@ const unsafeWindow = window;
         #migaku-controller.dark-mode .advanced-settings-header button { color: #bbb; }
         #migaku-controller.minimized { min-width: 50px !important; min-height: 30px !important; width: 50px !important; height: 30px !important; overflow: hidden !important; resize: none; padding: 5px; }
         #migaku-controller.minimized .controller-content, #migaku-controller.minimized .log-area, #migaku-controller.minimized .controller-nav, #migaku-controller.minimized #migaku-error-bar, #migaku-controller.minimized h3 { display: none; }
-        #migaku-toggle-btn { position: absolute; top: 12px; right: 12px; background: none; border: none; color: inherit; font-size: 18px; cursor: pointer; padding: 0; margin: 0; width: 20px; height: 20px; line-height: 20px; text-align: center; z-index: 1; }
+        #migaku-toggle-btn { display:flex; align-items:center; justify-content:center; position: absolute; top: 12px; right: 12px; background: none; border: none; color: inherit; font-size: 18px; cursor: pointer; padding: 0; margin: 0; width: 20px; height: 20px; z-index: 1; }
         #migaku-controller h3 { padding-right: 35px; margin-top: 0; margin-bottom: 10px; font-size: 18px; color: #555; }
         .controller-nav { display: flex; justify-content: space-around; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 8px; gap: 4px; }
         #migaku-controller.dark-mode .controller-nav { border-bottom-color: #555; }
@@ -196,7 +196,7 @@ const unsafeWindow = window;
         #migaku-controller.dark-mode #subtitle-file-modal-content { background-color: #3a3a3a; color: #eee; }
         #subtitle-file-modal-content pre { white-space: pre-wrap; word-break: break-all; font-size: 12px; color: #333; }
         #migaku-controller.dark-mode #subtitle-file-modal-content pre { color: #eee; }
-        #subtitle-file-modal-close { position: absolute; top: 10px; right: 10px; font-size: 20px; cursor: pointer; color: #333; }
+        #subtitle-file-modal-close { display:flex; align-items:center; justify-content:center; width:20px; height:20px; position: absolute; top: 10px; right: 10px; font-size: 20px; cursor: pointer; color: #333; }
         #migaku-controller.dark-mode #subtitle-file-modal-close { color: #eee; }
         #sync-point-selection-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); z-index: 10003; display: none; justify-content: center; align-items: center; }
         #sync-point-selection-content { background-color: #fff; padding: 20px; border-radius: 8px; max-width: 90%; max-height: 90%; overflow-y: auto; position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
@@ -207,7 +207,7 @@ const unsafeWindow = window;
         #migaku-controller.dark-mode #sync-point-selection-list div { border-color: #555; color: #bbb; }
         #sync-point-selection-list div:hover { background-color: #e0e0e0; }
         #migaku-controller.dark-mode #sync-point-selection-list div:hover { background-color: #555; }
-        #sync-point-selection-close { position: absolute; top: 10px; right: 10px; font-size: 20px; cursor: pointer; color: #333; }
+        #sync-point-selection-close { display:flex; align-items:center; justify-content:center; width:20px; height:20px; position: absolute; top: 10px; right: 10px; font-size: 20px; cursor: pointer; color: #333; }
         #migaku-controller.dark-mode #sync-point-selection-close { color: #eee; }
         #migaku-subtitle-display-wrapper { position: fixed; left: 0; right: 0; display: flex; justify-content: center; align-items: center; pointer-events: none; z-index: 10000; text-align: center; width: 100%; height: auto; box-sizing: border-box; top: auto; bottom: 15%; }
         #migaku-subtitle-display-wrapper .migaku-subtitle-text { display: inline-block; background-color: rgba(0,0,0,0.7); color: white; padding: 10px 15px; border-radius: 5px; max-width: 80%; text-align: center; font-size: ${state.fontSizeValue}px; font-family: inherit; text-shadow: 1px 1px 1px rgba(0,0,0,0.8); pointer-events: auto; white-space: pre-line; line-height: 1.4; box-shadow: 0 2px 5px rgba(0,0,0,0.5); word-wrap: break-word; }
@@ -224,7 +224,7 @@ const unsafeWindow = window;
         #migaku-controller.dark-mode #sync-points-list-display div button { background-color: #5a2d2d; border-color: #795548; }
         #sync-points-list-display div button:hover { background-color: #d32f2f; }
         #migaku-controller.dark-mode #sync-points-list-display div button:hover { background-color: #795548; border-color: #f44336; }
-        #sync-points-display-close { position: absolute; top: 10px; right: 10px; font-size: 20px; cursor: pointer; color: #333; }
+        #sync-points-display-close { display:flex; align-items:center; justify-content:center; width:20px; height:20px; position: absolute; top: 10px; right: 10px; font-size: 20px; cursor: pointer; color: #333; }
         #migaku-controller.dark-mode #sync-points-display-close { color: #eee; }
 
         /* Saved Page - New Layout & Button Size Fix */
@@ -264,7 +264,7 @@ const unsafeWindow = window;
         #files-display-modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom: 1px solid #eee; padding-bottom:10px;}
         #migaku-controller.dark-mode #files-display-modal-header { border-bottom-color: #555; }
         #files-display-modal-title { font-size: 1.2em; margin:0; }
-        #files-display-modal-close { font-size:1.5em; cursor:pointer; background:none; border:none; color:inherit; padding:0 5px; }
+        #files-display-modal-close { display:flex; align-items:center; justify-content:center; width:20px; height:20px; font-size:1.5em; cursor:pointer; background:none; border:none; color:inherit; padding:0 5px; }
         #files-list-in-modal { flex-grow:1; overflow-y:auto; border: 1px solid #ddd; padding: 10px; border-radius: 4px; background-color: #f9f9f9;}
         #migaku-controller.dark-mode #files-list-in-modal { border-color: #555; background-color: #222; }
         #files-list-in-modal .file-item { display:flex; justify-content:space-between; align-items:center; padding: 8px 6px; border-bottom: 1px solid #eee; }

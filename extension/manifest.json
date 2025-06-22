@@ -23,7 +23,8 @@
         "https://animekai.to/*"
       ],
       "js": ["content.js"],
-      "run_at": "document_end"
+      "run_at": "document_idle",
+      "all_frames": true
     }
   ]
 }

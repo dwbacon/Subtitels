@@ -56,6 +56,13 @@ const unsafeWindow = window;
         filesDisplayModal: null,
     };
 
+    // --- Advanced Video Scanning State ---
+    const bindings = [];
+    const shadowRootHosts = [];
+    const nodes = [];
+    let videoScanInterval = null;
+    let shadowRootInterval = null;
+
     function calculateAverageOffset(points) {
         if (!points || points.length === 0) return 0;
         const sum = points.reduce((acc, p) => acc + (p.videoTime - p.subtitleTime), 0);
@@ -507,7 +514,92 @@ const unsafeWindow = window;
 
     function hideElementAggressively(element, reason) { if (!element) return; element.style.setProperty('display', 'none', 'important'); element.style.setProperty('visibility', 'hidden', 'important'); element.style.setProperty('pointer-events', 'none', 'important'); console.log(`[Iframe] Hid: ${element.tagName}${element.id?'#'+element.id:''}${element.className?'.'+element.className.split(' ').join('.'):''} (${reason})`); }
     function disableTextTrack(track, reason) { if (!track || track.label === "Migaku Subtitles") return; track.mode = 'disabled'; console.log(`[Iframe] Disabled track: ${track.label} (${reason})`); }
-    function findAndInitializeVideo() { if(!state.isEmbedded)return false;console.log('[Iframe] Finding video...');let v=document.querySelector('video');if(v){state.videoElement=v;let c=v.parentElement;while(c&&!c.classList.contains('jw-media')&&!c.classList.contains('plyr')&&c.tagName!=='BODY')c=c.parentElement;state.videoContainer=c||v.parentElement;if(window.getComputedStyle(state.videoContainer).position==='static')state.videoContainer.style.position='relative';state.videoContainer.classList.add('video-wrapper-migaku');document.addEventListener('fullscreenchange',handleFullscreenChangeIframe);document.addEventListener('webkitfullscreenchange',handleFullscreenChangeIframe);v.addEventListener('timeupdate',sendCurrentTimeToTop);const nS=state.videoContainer.querySelectorAll('.jw-texttrack-display,.jw-captions,.plyr__captions,.vjs-text-track-display');nS.forEach(e=>hideElementAggressively(e,'init find'));if(v.textTracks)Array.from(v.textTracks).forEach(t=>disableTextTrack(t,'init'));if(!state.mutationObserver&&state.videoContainer){state.mutationObserver=new MutationObserver(handleMutations);state.mutationObserver.observe(state.videoContainer,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class']});}observeTextTracks();sendMessage('videoFound');sendMessage('statusUpdate',{text:'Video found.'});console.log('[Iframe] Video initialized.');return true;}return false;}
+
+    // --- Advanced Video Scanning Helpers ---
+    function garbageCollectShadowHosts() {
+        for (let i = shadowRootHosts.length - 1; i >= 0; i--) {
+            if (!document.contains(shadowRootHosts[i])) shadowRootHosts.splice(i, 1);
+        }
+    }
+
+    function incrementallyFindShadowRoots() {
+        garbageCollectShadowHosts();
+        if (nodes.length === 0) {
+            if (shadowRootHosts.length > 0) return;
+            nodes.push(document);
+        }
+        let count = 0;
+        while (nodes.length > 0 && count < 100) {
+            const node = nodes.shift();
+            if (!(node instanceof Element)) { if (node && node.childNodes) nodes.push(...node.childNodes); continue; }
+            if (node.shadowRoot) shadowRootHosts.push(node);
+            nodes.push(...node.children);
+            count++;
+        }
+    }
+
+    function initializeVideo(v) {
+        state.videoElement = v;
+        let c = v.parentElement;
+        while (c && !c.classList.contains('jw-media') && !c.classList.contains('plyr') && c.tagName !== 'BODY') c = c.parentElement;
+        state.videoContainer = c || v.parentElement;
+        if (window.getComputedStyle(state.videoContainer).position === 'static') state.videoContainer.style.position = 'relative';
+        state.videoContainer.classList.add('video-wrapper-migaku');
+        document.addEventListener('fullscreenchange', handleFullscreenChangeIframe);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChangeIframe);
+        v.addEventListener('timeupdate', sendCurrentTimeToTop);
+        const nS = state.videoContainer.querySelectorAll('.jw-texttrack-display,.jw-captions,.plyr__captions,.vjs-text-track-display');
+        nS.forEach(e => hideElementAggressively(e, 'init find'));
+        if (v.textTracks) Array.from(v.textTracks).forEach(t => disableTextTrack(t, 'init'));
+        if (!state.mutationObserver && state.videoContainer) {
+            state.mutationObserver = new MutationObserver(handleMutations);
+            state.mutationObserver.observe(state.videoContainer, { childList: true, subtree: true, attributes: true, attributeFilter: ['style','class'] });
+        }
+        observeTextTracks();
+        sendMessage('videoFound');
+        sendMessage('statusUpdate', { text: 'Video found.' });
+        console.log('[Iframe] Video initialized.');
+    }
+
+    function bindToVideoElements() {
+        const elements = Array.from(document.getElementsByTagName('video'));
+        for (const host of shadowRootHosts) {
+            try { elements.push(...host.shadowRoot.querySelectorAll('video')); } catch {}
+        }
+        for (const v of elements) {
+            if (bindings.find(b => b.video === v)) continue;
+            if (!v.src) continue;
+            const b = new Binding(v);
+            b.bind();
+            bindings.push(b);
+        }
+    }
+
+    class Binding {
+        constructor(video) { this.video = video; this.heartbeatInterval = null; }
+        bind() {
+            if (!state.videoElement) initializeVideo(this.video);
+            this.heartbeatInterval = setInterval(() => {
+                sendMessage('currentTimeUpdate', { currentTime: this.video.currentTime });
+            }, 1000);
+            this.video.addEventListener('play', () => sendMessage('statusUpdate', { text: 'Video playing.' }));
+            this.video.addEventListener('pause', () => sendMessage('statusUpdate', { text: 'Video paused.' }));
+        }
+        unbind() { if (this.heartbeatInterval) clearInterval(this.heartbeatInterval); }
+    }
+
+    function startAdvancedScanning() {
+        bindToVideoElements();
+        if (!videoScanInterval) videoScanInterval = setInterval(bindToVideoElements, 1000);
+        if (!shadowRootInterval) shadowRootInterval = setInterval(incrementallyFindShadowRoots, 100);
+    }
+    function findAndInitializeVideo() {
+        if (!state.isEmbedded) return false;
+        console.log('[Iframe] Finding video...');
+        const v = document.querySelector('video');
+        if (v) { initializeVideo(v); return true; }
+        return false;
+    }
     function handleFullscreenChangeIframe() { if(!state.isEmbedded)return;const isFs=!!(document.fullscreenElement||document.webkitFullscreenElement);sendMessage('fullscreenChange',{isFullscreen:isFs});console.log(`[Iframe] Fullscreen:${isFs}`);sendCurrentTimeToTop(); }
     function sendCurrentTimeToTop() { if(!state.isEmbedded||!state.videoElement||state.videoElement.readyState===0)return;sendMessage('currentTimeUpdate',{currentTime:state.videoElement.currentTime});}
     function handleMutations(mutationsList,observer){if(!state.isEmbedded)return;for(const m of mutationsList){if(m.type==='childList'){m.addedNodes.forEach(n=>{if(n.nodeType===1){if(n.matches('.jw-texttrack-display,.jw-captions,.plyr__captions,.vjs-text-track-display'))hideElementAggressively(n,'mut:added sub disp');if(n.tagName==='TRACK'&&state.videoElement&&state.videoElement.contains(n)){disableTextTrack(n,'mut:added track');observeTextTrack(n);}n.querySelectorAll('.jw-texttrack-display,.jw-captions,.plyr__captions,.vjs-text-track-display,track').forEach(el=>{if(el.tagName==='TRACK'){disableTextTrack(el,'mut:added track sub');observeTextTrack(el);}else hideElementAggressively(el,'mut:added sub disp sub');});}});}}if(state.videoElement?.textTracks)Array.from(state.videoElement.textTracks).forEach(t=>disableTextTrack(t,'mut:periodic'));}
@@ -551,10 +643,10 @@ const unsafeWindow = window;
             const resObs = new ResizeObserver(() => updateSubtitleDisplay()); resObs.observe(document.body);
             document.addEventListener('fullscreenchange', handleFullscreenChangeTop); document.addEventListener('webkitfullscreenchange', handleFullscreenChangeTop);
             updateStatus('Searching for video player...'); logToPopup('Initialization complete.');
+            startAdvancedScanning();
         } else {
             console.log(`Migaku Script (Iframe v${GM_info.script.version}): Initializing.`);
-            const found = findAndInitializeVideo();
-            if (!found) state.subtitleCheckInterval = setInterval(() => { if (!state.videoElement) findAndInitializeVideo(); else { clearInterval(state.subtitleCheckInterval); state.subtitleCheckInterval = null; if(window.top) sendMessage('log', {text: 'Iframe video by interval.'});}}, 2000);
+            startAdvancedScanning();
         }
     }
 

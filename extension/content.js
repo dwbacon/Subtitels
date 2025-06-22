@@ -558,5 +558,9 @@ const unsafeWindow = window;
         }
     }
 
-    setTimeout(initialize, 1500);
+    if (document.readyState === 'loading') {
+        window.addEventListener('DOMContentLoaded', () => setTimeout(initialize, 1500));
+    } else {
+        setTimeout(initialize, 1500);
+    }
 })();

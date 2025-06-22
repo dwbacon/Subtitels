@@ -6,7 +6,8 @@
   "permissions": ["storage"],
   "host_permissions": [
     "https://hianimez.to/*",
-    "https://hianime.to/*",
+    "*://hianime.to/*",
+    "*://www.hianime.to/*",
     "https://*.megacloud.tv/embed*",
     "https://*.megacloud.blog/embed*",
     "https://animekai.to/*"
@@ -15,7 +16,8 @@
     {
       "matches": [
         "https://hianimez.to/*",
-        "https://hianime.to/*",
+        "*://hianime.to/*",
+        "*://www.hianime.to/*",
         "https://*.megacloud.tv/embed*",
         "https://*.megacloud.blog/embed*",
         "https://animekai.to/*"

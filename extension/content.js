@@ -168,7 +168,7 @@ const unsafeWindow = window;
         .settings-row input[type="number"] { width: 70px; flex-grow: 0; }
         .settings-row input[type="checkbox"]#dark-mode-toggle, .settings-row input[type="checkbox"]#ignore-page-detection-toggle { flex-grow: 0; width: auto; height: auto; padding: 0; margin: 0 5px 0 0; border: none; background: none; appearance: checkbox; -webkit-appearance: checkbox; vertical-align: middle;}
         .settings-row input[type="range"] { padding: 0; }
-        .settings-row span { margin-left: 8px; font-size: 13px; color: #555; flex-grow: 1; word-break: break-word; }
+        .settings-row span { margin-left: 8px; font-size: 13px; color: #555; flex-grow: 0; white-space: nowrap; word-break: break-word; }
         #migaku-controller.dark-mode .settings-row span { color: #bbb; }
         #page-about h4 { margin-top: 0; margin-bottom: 10px; color: #555; }
         #migaku-controller.dark-mode #page-about h4 { color: #ccc; }

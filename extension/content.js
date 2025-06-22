@@ -30,7 +30,7 @@ const unsafeWindow = window;
         minimized: GM_getValue('minimized', false), isEmbedded: window.self !== window.top,
         videoElement: null, videoContainer: null, subtitleCheckInterval: null,
         lastProcessedTime: -1, iframeWindow: null, currentVideoTime: 0,
-        logElement: null, controller: null,
+        logElement: null, logBuffer: [], controller: null,
         currentPage: GM_getValue('migakuLastActiveTab', 'import'),
         subtitleTextColor: GM_getValue('subtitleTextColor', '#FFFFFF'),
         subtitleBackgroundColor: GM_getValue('subtitleBackgroundColor', '#000000'),
@@ -55,6 +55,13 @@ const unsafeWindow = window;
         controllerLastHeight: GM_getValue('migakuControllerHeight', 'auto'),
         filesDisplayModal: null,
     };
+
+    // --- Advanced Video Scanning State ---
+    const bindings = [];
+    const shadowRootHosts = [];
+    const nodes = [];
+    let videoScanInterval = null;
+    let shadowRootInterval = null;
 
     function calculateAverageOffset(points) {
         if (!points || points.length === 0) return 0;
@@ -119,9 +126,9 @@ const unsafeWindow = window;
         #migaku-controller.dark-mode .advanced-settings-header button { color: #bbb; }
         #migaku-controller.minimized { min-width: 50px !important; min-height: 30px !important; width: 50px !important; height: 30px !important; overflow: hidden !important; resize: none; padding: 5px; }
         #migaku-controller.minimized .controller-content, #migaku-controller.minimized .log-area, #migaku-controller.minimized .controller-nav, #migaku-controller.minimized #migaku-error-bar, #migaku-controller.minimized h3 { display: none; }
-        #migaku-toggle-btn { position: absolute; top: 12px; right: 12px; background: none; border: none; color: inherit; font-size: 18px; cursor: pointer; padding: 0; margin: 0; width: 20px; height: 20px; line-height: 20px; text-align: center; z-index: 1; }
+        #migaku-toggle-btn { display:flex; align-items:center; justify-content:center; position: absolute; top: 12px; right: 12px; background: none; border: none; color: inherit; font-size: 18px; cursor: pointer; padding: 0; margin: 0; width: 20px; height: 20px; z-index: 1; }
         #migaku-controller h3 { padding-right: 35px; margin-top: 0; margin-bottom: 10px; font-size: 18px; color: #555; }
-        .controller-nav { display: flex; justify-content: space-around; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+        .controller-nav { display: flex; justify-content: space-around; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 8px; gap: 4px; }
         #migaku-controller.dark-mode .controller-nav { border-bottom-color: #555; }
         .controller-nav button { background: none; border: none; color: #555; cursor: pointer; font-size: 13px; padding: 5px 6px; transition: color 0.2s ease, border-bottom-color 0.2s ease; flex-grow: 1; text-align: center; white-space: nowrap; }
         .controller-nav button:hover { color: #000; }
@@ -165,7 +172,7 @@ const unsafeWindow = window;
         .settings-row input[type="number"] { width: 70px; flex-grow: 0; }
         .settings-row input[type="checkbox"]#dark-mode-toggle, .settings-row input[type="checkbox"]#ignore-page-detection-toggle { flex-grow: 0; width: auto; height: auto; padding: 0; margin: 0 5px 0 0; border: none; background: none; appearance: checkbox; -webkit-appearance: checkbox; vertical-align: middle;}
         .settings-row input[type="range"] { padding: 0; }
-        .settings-row span { margin-left: 8px; font-size: 13px; color: #555; flex-grow: 1; word-break: break-word; }
+        .settings-row span { margin-left: 8px; font-size: 13px; color: #555; flex-grow: 0; white-space: nowrap; word-break: break-word; }
         #migaku-controller.dark-mode .settings-row span { color: #bbb; }
         .advanced-settings-header { margin-top: 15px; margin-bottom: 10px; font-size: 16px; font-weight: bold; cursor: pointer; color: #555; display: flex; align-items: center; }
         #migaku-controller.dark-mode .advanced-settings-header { color: #ccc; }
@@ -179,7 +186,7 @@ const unsafeWindow = window;
         #migaku-controller.dark-mode #subtitle-file-modal-content { background-color: #3a3a3a; color: #eee; }
         #subtitle-file-modal-content pre { white-space: pre-wrap; word-break: break-all; font-size: 12px; color: #333; }
         #migaku-controller.dark-mode #subtitle-file-modal-content pre { color: #eee; }
-        #subtitle-file-modal-close { position: absolute; top: 10px; right: 10px; font-size: 20px; cursor: pointer; color: #333; }
+        #subtitle-file-modal-close { display:flex; align-items:center; justify-content:center; width:20px; height:20px; position: absolute; top: 10px; right: 10px; font-size: 20px; cursor: pointer; color: #333; }
         #migaku-controller.dark-mode #subtitle-file-modal-close { color: #eee; }
         #sync-point-selection-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); z-index: 10003; display: none; justify-content: center; align-items: center; }
         #sync-point-selection-content { background-color: #fff; padding: 20px; border-radius: 8px; max-width: 90%; max-height: 90%; overflow-y: auto; position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
@@ -190,7 +197,7 @@ const unsafeWindow = window;
         #migaku-controller.dark-mode #sync-point-selection-list div { border-color: #555; color: #bbb; }
         #sync-point-selection-list div:hover { background-color: #e0e0e0; }
         #migaku-controller.dark-mode #sync-point-selection-list div:hover { background-color: #555; }
-        #sync-point-selection-close { position: absolute; top: 10px; right: 10px; font-size: 20px; cursor: pointer; color: #333; }
+        #sync-point-selection-close { display:flex; align-items:center; justify-content:center; width:20px; height:20px; position: absolute; top: 10px; right: 10px; font-size: 20px; cursor: pointer; color: #333; }
         #migaku-controller.dark-mode #sync-point-selection-close { color: #eee; }
         #migaku-subtitle-display-wrapper { position: fixed; left: 0; right: 0; display: flex; justify-content: center; align-items: center; pointer-events: none; z-index: 10000; text-align: center; width: 100%; height: auto; box-sizing: border-box; top: auto; bottom: 15%; }
         #migaku-subtitle-display-wrapper .migaku-subtitle-text { display: inline-block; background-color: rgba(0,0,0,0.7); color: white; padding: 10px 15px; border-radius: 5px; max-width: 80%; text-align: center; font-size: ${state.fontSizeValue}px; font-family: inherit; text-shadow: 1px 1px 1px rgba(0,0,0,0.8); pointer-events: auto; white-space: pre-line; line-height: 1.4; box-shadow: 0 2px 5px rgba(0,0,0,0.5); word-wrap: break-word; }
@@ -207,7 +214,7 @@ const unsafeWindow = window;
         #migaku-controller.dark-mode #sync-points-list-display div button { background-color: #5a2d2d; border-color: #795548; }
         #sync-points-list-display div button:hover { background-color: #d32f2f; }
         #migaku-controller.dark-mode #sync-points-list-display div button:hover { background-color: #795548; border-color: #f44336; }
-        #sync-points-display-close { position: absolute; top: 10px; right: 10px; font-size: 20px; cursor: pointer; color: #333; }
+        #sync-points-display-close { display:flex; align-items:center; justify-content:center; width:20px; height:20px; position: absolute; top: 10px; right: 10px; font-size: 20px; cursor: pointer; color: #333; }
         #migaku-controller.dark-mode #sync-points-display-close { color: #eee; }
 
         /* Saved Page - New Layout & Button Size Fix */
@@ -247,7 +254,7 @@ const unsafeWindow = window;
         #files-display-modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom: 1px solid #eee; padding-bottom:10px;}
         #migaku-controller.dark-mode #files-display-modal-header { border-bottom-color: #555; }
         #files-display-modal-title { font-size: 1.2em; margin:0; }
-        #files-display-modal-close { font-size:1.5em; cursor:pointer; background:none; border:none; color:inherit; padding:0 5px; }
+        #files-display-modal-close { display:flex; align-items:center; justify-content:center; width:20px; height:20px; font-size:1.5em; cursor:pointer; background:none; border:none; color:inherit; padding:0 5px; }
         #files-list-in-modal { flex-grow:1; overflow-y:auto; border: 1px solid #ddd; padding: 10px; border-radius: 4px; background-color: #f9f9f9;}
         #migaku-controller.dark-mode #files-list-in-modal { border-color: #555; background-color: #222; }
         #files-list-in-modal .file-item { display:flex; justify-content:space-between; align-items:center; padding: 8px 6px; border-bottom: 1px solid #eee; }
@@ -296,7 +303,33 @@ const unsafeWindow = window;
         }
     }
     function sendMessage(command, data = {}) { const message = { source: 'migaku-subtitle-importer', command, ...data }; if (!state.isEmbedded && state.iframeWindow) state.iframeWindow.postMessage(message, '*'); else if (state.isEmbedded && window.top) window.top.postMessage(message, '*'); }
-    function logToPopup(message) { if (state.isEmbedded) return; if (!state.logElement && state.controller) state.logElement = state.controller.querySelector('.log-area'); if (state.logElement) { const entry = document.createElement('div'); entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`; state.logElement.appendChild(entry); state.logElement.scrollTop = state.logElement.scrollHeight; } console.log(message); }
+    function flushLogBuffer() {
+        if (state.logElement && state.logBuffer.length > 0) {
+            state.logBuffer.forEach(msg => {
+                const entry = document.createElement('div');
+                entry.textContent = msg;
+                state.logElement.appendChild(entry);
+            });
+            state.logElement.scrollTop = state.logElement.scrollHeight;
+            state.logBuffer = [];
+        }
+    }
+    function logToPopup(message) {
+        if (state.isEmbedded) return;
+        const formatted = `[${new Date().toLocaleTimeString()}] ${message}`;
+        if (!state.logElement && state.controller)
+            state.logElement = state.controller.querySelector('.log-area');
+        if (state.logElement) {
+            const entry = document.createElement('div');
+            entry.textContent = formatted;
+            state.logElement.appendChild(entry);
+            state.logElement.scrollTop = state.logElement.scrollHeight;
+            flushLogBuffer();
+        } else {
+            state.logBuffer.push(formatted);
+        }
+        console.log(message);
+    }
 
     // --- Controller UI Initialization & Structure ---
     function initializeController() {
@@ -401,12 +434,74 @@ const unsafeWindow = window;
     function setupImportPageListeners() { document.getElementById('subtitle-folder-import')?.addEventListener('change',(e)=>handleSubtitleImport(e,'folder')); document.getElementById('subtitle-file-import')?.addEventListener('change',(e)=>handleSubtitleImport(e,'files')); document.getElementById('clear-subtitles')?.addEventListener('click',clearCurrentSubtitlesOnly); }
     function setupSavedPageListeners() { document.getElementById('saved-page-edit-toggle')?.addEventListener('click',toggleSavedPageEditMode); renderSavedAnimeList(); }
     function setupSyncPageListeners() { document.getElementById('mark-sync-point')?.addEventListener('click',markSyncPoint); document.getElementById('clear-sync-points')?.addEventListener('click',clearSyncPoints); document.getElementById('show-sync-points')?.addEventListener('click',showSyncPointsDisplayModal); document.getElementById('manual-sync-offset')?.addEventListener('input',adjustManualSyncOffset); document.getElementById('save-current-sync-to-file')?.addEventListener('click',saveCurrentSyncToFileHandler); document.getElementById('clear-saved-sync-for-file')?.addEventListener('click',clearSavedSyncForFileHandler); }
-    function setupSettingsPageListeners() { document.getElementById('dark-mode-toggle')?.addEventListener('change',toggleDarkMode); document.getElementById('subtitle-font-size')?.addEventListener('input',adjustFontSize); document.getElementById('subtitle-text-color')?.addEventListener('input',adjustSubtitleAppearance); document.getElementById('subtitle-background-color')?.addEventListener('input',adjustSubtitleAppearance); document.getElementById('subtitle-background-opacity')?.addEventListener('input',adjustSubtitleAppearance); document.getElementById('vertical-position')?.addEventListener('input',adjustVerticalPosition); document.getElementById('outline-size')?.addEventListener('input',adjustOutlineSize); document.getElementById('toggle-advanced-settings')?.addEventListener('click',toggleAdvancedSettings); document.getElementById('apply-manual-subtitle')?.addEventListener('click',applyManualSubtitleSelection); document.getElementById('show-full-subtitles')?.addEventListener('click',showFullSubtitlesModal); document.getElementById('copy-log-button')?.addEventListener('click',copyLogToClipboard); document.getElementById('ignore-page-detection-toggle')?.addEventListener('change',toggleIgnorePageDetection); document.getElementById('ignore-page-info-btn')?.addEventListener('click',()=>{alert("When ON, page detection won't auto-switch subs.");}); if(!state.logElement)state.logElement=state.controller.querySelector('.log-area'); }
+    function setupSettingsPageListeners() {
+        document.getElementById('dark-mode-toggle')?.addEventListener('change', toggleDarkMode);
+        document.getElementById('subtitle-font-size')?.addEventListener('input', adjustFontSize);
+        document.getElementById('subtitle-text-color')?.addEventListener('input', adjustSubtitleAppearance);
+        document.getElementById('subtitle-background-color')?.addEventListener('input', adjustSubtitleAppearance);
+        document.getElementById('subtitle-background-opacity')?.addEventListener('input', adjustSubtitleAppearance);
+        document.getElementById('vertical-position')?.addEventListener('input', adjustVerticalPosition);
+        document.getElementById('outline-size')?.addEventListener('input', adjustOutlineSize);
+        document.getElementById('toggle-advanced-settings')?.addEventListener('click', toggleAdvancedSettings);
+        document.getElementById('apply-manual-subtitle')?.addEventListener('click', applyManualSubtitleSelection);
+        document.getElementById('show-full-subtitles')?.addEventListener('click', showFullSubtitlesModal);
+        document.getElementById('copy-log-button')?.addEventListener('click', copyLogToClipboard);
+        document.getElementById('ignore-page-detection-toggle')?.addEventListener('change', toggleIgnorePageDetection);
+        document.getElementById('ignore-page-info-btn')?.addEventListener('click', () => { alert("When ON, page detection won't auto-switch subs."); });
+        if (!state.logElement) state.logElement = state.controller.querySelector('.log-area');
+        flushLogBuffer();
+    }
 
     function createModalsAndListeners() { const sw=document.createElement('div');sw.id='migaku-subtitle-display-wrapper';document.body.appendChild(sw);const sfm=document.createElement('div');sfm.id='subtitle-file-modal';sfm.innerHTML=`<div id="subtitle-file-modal-content"><span id="subtitle-file-modal-close">&times;</span><h4>Full Subtitle Content</h4><pre id="full-subtitle-text"></pre></div>`;document.body.appendChild(sfm);sfm.querySelector('#subtitle-file-modal-close').addEventListener('click',hideFullSubtitlesModal);sfm.addEventListener('click',(e)=>{if(e.target===sfm)hideFullSubtitlesModal();});state.syncPointSelectionModal=document.createElement('div');state.syncPointSelectionModal.id='sync-point-selection-modal';state.syncPointSelectionModal.innerHTML=`<div id="sync-point-selection-content"><span id="sync-point-selection-close">&times;</span><h4>Select Cue (Video: <span id="sync-modal-video-time"></span>s)</h4><div id="native-subtitle-hint" class="native-subtitle-hint" style="display:none;"></div><div id="sync-point-selection-list"></div></div>`;document.body.appendChild(state.syncPointSelectionModal);state.syncPointSelectionModal.querySelector('#sync-point-selection-close').addEventListener('click',hideSyncPointSelectionModal);state.syncPointSelectionModal.addEventListener('click',(e)=>{if(e.target===state.syncPointSelectionModal)hideSyncPointSelectionModal();});state.syncPointsDisplayModal=document.createElement('div');state.syncPointsDisplayModal.id='sync-points-display-modal';state.syncPointsDisplayModal.innerHTML=`<div id="sync-points-display-content"><span id="sync-points-display-close">&times;</span><h4>Marked Sync Points</h4><div id="sync-points-list-display"></div></div>`;document.body.appendChild(state.syncPointsDisplayModal);state.syncPointsDisplayModal.querySelector('#sync-points-display-close').addEventListener('click',hideSyncPointsDisplayModal);state.syncPointsDisplayModal.addEventListener('click',(e)=>{if(e.target===state.syncPointsDisplayModal)hideSyncPointsDisplayModal();});const fm=document.createElement('div');fm.id='files-display-modal';fm.innerHTML=`<div id="files-display-modal-content"><div id="files-display-modal-header"><h4 id="files-display-modal-title">Files</h4><button id="files-display-modal-close">&times;</button></div><div id="files-list-in-modal"></div></div>`;document.body.appendChild(fm);state.filesDisplayModal=fm;fm.querySelector('#files-display-modal-close').addEventListener('click',hideFilesDisplayModal);fm.addEventListener('click',(e)=>{if(e.target.id==='files-display-modal')hideFilesDisplayModal();});}
 
     function handleNavigationClick(event) { if (state.isEmbedded) return; const pageId = event.target.dataset.page; if (pageId && pageId !== state.currentPage) { showPage(pageId); GM_setValue('migakuLastActiveTab', pageId); }}
     function showPage(pageId) { if (state.isEmbedded || !state.controller) return; const contentArea = state.controller.querySelector('.controller-content'); if (!contentArea) { logToPopup("Error: Controller content area not found."); return; } let pageHTML = ''; switch (pageId) { case 'import': pageHTML = importPageHTML(); break; case 'saved': pageHTML = savedPageHTML(); break; case 'sync': pageHTML = syncPageHTML(); break; case 'settings': pageHTML = settingsPageHTML(); break; default: logToPopup(`Unknown pageId: ${pageId}. Defaulting to import.`); pageHTML = importPageHTML(); pageId = 'import'; } contentArea.innerHTML = pageHTML; state.controller.querySelectorAll('.controller-nav button').forEach(b => b.classList.remove('active')); const targetButton = state.controller.querySelector(`.controller-nav button[data-page="${pageId}"]`); if (targetButton) targetButton.classList.add('active'); else { logToPopup(`Could not find nav button for page ${pageId}`);} state.currentPage = pageId; logToPopup(`Switched to page: ${pageId}`); if (pageId === 'import') setupImportPageListeners(); else if (pageId === 'saved') setupSavedPageListeners(); else if (pageId === 'sync') setupSyncPageListeners(); else if (pageId === 'settings') setupSettingsPageListeners(); updateActiveSavedDisplay(); updateSyncPointsDisplay(); if(pageId === 'settings' && !state.logElement) state.logElement = state.controller.querySelector('.log-area'); }
+
+    function showPage(pageId) {
+        if (state.isEmbedded || !state.controller) return;
+        const contentArea = state.controller.querySelector('.controller-content');
+        if (!contentArea) { logToPopup("Error: Controller content area not found."); return; }
+        let pageHTML = '';
+        switch (pageId) {
+            case 'import':
+                pageHTML = importPageHTML();
+                break;
+            case 'saved':
+                pageHTML = savedPageHTML();
+                break;
+            case 'sync':
+                pageHTML = syncPageHTML();
+                break;
+            case 'settings':
+                pageHTML = settingsPageHTML();
+                break;
+            case 'about':
+                pageHTML = aboutPageHTML();
+                break;
+            default:
+                logToPopup(`Unknown pageId: ${pageId}. Defaulting to import.`);
+                pageHTML = importPageHTML();
+                pageId = 'import';
+        }
+        contentArea.innerHTML = pageHTML;
+        state.controller.querySelectorAll('.controller-nav button').forEach(b => b.classList.remove('active'));
+        const targetButton = state.controller.querySelector(`.controller-nav button[data-page="${pageId}"]`);
+        if (targetButton) targetButton.classList.add('active');
+        else { logToPopup(`Could not find nav button for page ${pageId}`); }
+        state.currentPage = pageId;
+        logToPopup(`Switched to page: ${pageId}`);
+        if (pageId === 'import') setupImportPageListeners();
+        else if (pageId === 'saved') setupSavedPageListeners();
+        else if (pageId === 'sync') setupSyncPageListeners();
+        else if (pageId === 'settings') setupSettingsPageListeners();
+        updateActiveSavedDisplay();
+        updateSyncPointsDisplay();
+        if (pageId === 'settings') {
+            if (!state.logElement) state.logElement = state.controller.querySelector('.log-area');
+            flushLogBuffer();
+        }
+    }
+
     function toggleMinimize() { if (state.isEmbedded) return; const controller = state.controller; state.minimized = !state.minimized; GM_setValue('minimized', state.minimized); if (state.minimized) { if (controller.style.width && controller.style.width !== 'auto' && controller.style.width !== '50px') { state.controllerLastWidth = controller.style.width; GM_setValue('migakuControllerWidth', state.controllerLastWidth); } if (controller.style.height && controller.style.height !== 'auto' && controller.style.height !== '30px') { state.controllerLastHeight = controller.style.height; GM_setValue('migakuControllerHeight', state.controllerLastHeight); } controller.classList.add('minimized'); } else { controller.classList.remove('minimized'); controller.style.width = state.controllerLastWidth || '380px'; controller.style.height = (state.controllerLastHeight === 'auto' || !state.controllerLastHeight) ? '' : state.controllerLastHeight; controller.style.overflow = 'hidden'; } logToPopup(`Controller minimized: ${state.minimized}`); }
     function toggleDarkMode() { if (state.isEmbedded) return; state.darkMode = document.getElementById('dark-mode-toggle').checked; GM_setValue('darkMode', state.darkMode); state.darkMode ? state.controller.classList.add('dark-mode') : state.controller.classList.remove('dark-mode'); errorBar.toggleDarkMode(state.darkMode); logToPopup(`Dark mode ${state.darkMode ? 'enabled' : 'disabled'}.`); applySubtitleAppearanceSettings(); }
     function toggleAdvancedSettings() { if (state.isEmbedded) return; const content = document.getElementById('advanced-settings-content'), btn = document.getElementById('toggle-advanced-settings'); state.advancedSettingsOpen = !content.classList.contains('active'); GM_setValue('advancedSettingsOpen', state.advancedSettingsOpen); if (state.advancedSettingsOpen) { content.classList.add('active'); btn.textContent = '▲'; } else { content.classList.remove('active'); btn.textContent = '▼'; } logToPopup(`Advanced settings ${state.advancedSettingsOpen ? 'shown' : 'hidden'}.`); }
@@ -495,7 +590,92 @@ const unsafeWindow = window;
 
     function hideElementAggressively(element, reason) { if (!element) return; element.style.setProperty('display', 'none', 'important'); element.style.setProperty('visibility', 'hidden', 'important'); element.style.setProperty('pointer-events', 'none', 'important'); console.log(`[Iframe] Hid: ${element.tagName}${element.id?'#'+element.id:''}${element.className?'.'+element.className.split(' ').join('.'):''} (${reason})`); }
     function disableTextTrack(track, reason) { if (!track || track.label === "Migaku Subtitles") return; track.mode = 'disabled'; console.log(`[Iframe] Disabled track: ${track.label} (${reason})`); }
-    function findAndInitializeVideo() { if(!state.isEmbedded)return false;console.log('[Iframe] Finding video...');let v=document.querySelector('video');if(v){state.videoElement=v;let c=v.parentElement;while(c&&!c.classList.contains('jw-media')&&!c.classList.contains('plyr')&&c.tagName!=='BODY')c=c.parentElement;state.videoContainer=c||v.parentElement;if(window.getComputedStyle(state.videoContainer).position==='static')state.videoContainer.style.position='relative';state.videoContainer.classList.add('video-wrapper-migaku');document.addEventListener('fullscreenchange',handleFullscreenChangeIframe);document.addEventListener('webkitfullscreenchange',handleFullscreenChangeIframe);v.addEventListener('timeupdate',sendCurrentTimeToTop);const nS=state.videoContainer.querySelectorAll('.jw-texttrack-display,.jw-captions,.plyr__captions,.vjs-text-track-display');nS.forEach(e=>hideElementAggressively(e,'init find'));if(v.textTracks)Array.from(v.textTracks).forEach(t=>disableTextTrack(t,'init'));if(!state.mutationObserver&&state.videoContainer){state.mutationObserver=new MutationObserver(handleMutations);state.mutationObserver.observe(state.videoContainer,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class']});}observeTextTracks();sendMessage('videoFound');sendMessage('statusUpdate',{text:'Video found.'});console.log('[Iframe] Video initialized.');return true;}return false;}
+
+    // --- Advanced Video Scanning Helpers ---
+    function garbageCollectShadowHosts() {
+        for (let i = shadowRootHosts.length - 1; i >= 0; i--) {
+            if (!document.contains(shadowRootHosts[i])) shadowRootHosts.splice(i, 1);
+        }
+    }
+
+    function incrementallyFindShadowRoots() {
+        garbageCollectShadowHosts();
+        if (nodes.length === 0) {
+            if (shadowRootHosts.length > 0) return;
+            nodes.push(document);
+        }
+        let count = 0;
+        while (nodes.length > 0 && count < 100) {
+            const node = nodes.shift();
+            if (!(node instanceof Element)) { if (node && node.childNodes) nodes.push(...node.childNodes); continue; }
+            if (node.shadowRoot) shadowRootHosts.push(node);
+            nodes.push(...node.children);
+            count++;
+        }
+    }
+
+    function initializeVideo(v) {
+        state.videoElement = v;
+        let c = v.parentElement;
+        while (c && !c.classList.contains('jw-media') && !c.classList.contains('plyr') && c.tagName !== 'BODY') c = c.parentElement;
+        state.videoContainer = c || v.parentElement;
+        if (window.getComputedStyle(state.videoContainer).position === 'static') state.videoContainer.style.position = 'relative';
+        state.videoContainer.classList.add('video-wrapper-migaku');
+        document.addEventListener('fullscreenchange', handleFullscreenChangeIframe);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChangeIframe);
+        v.addEventListener('timeupdate', sendCurrentTimeToTop);
+        const nS = state.videoContainer.querySelectorAll('.jw-texttrack-display,.jw-captions,.plyr__captions,.vjs-text-track-display');
+        nS.forEach(e => hideElementAggressively(e, 'init find'));
+        if (v.textTracks) Array.from(v.textTracks).forEach(t => disableTextTrack(t, 'init'));
+        if (!state.mutationObserver && state.videoContainer) {
+            state.mutationObserver = new MutationObserver(handleMutations);
+            state.mutationObserver.observe(state.videoContainer, { childList: true, subtree: true, attributes: true, attributeFilter: ['style','class'] });
+        }
+        observeTextTracks();
+        sendMessage('videoFound');
+        sendMessage('statusUpdate', { text: 'Video found.' });
+        console.log('[Iframe] Video initialized.');
+    }
+
+    function bindToVideoElements() {
+        const elements = Array.from(document.getElementsByTagName('video'));
+        for (const host of shadowRootHosts) {
+            try { elements.push(...host.shadowRoot.querySelectorAll('video')); } catch {}
+        }
+        for (const v of elements) {
+            if (bindings.find(b => b.video === v)) continue;
+            if (!v.src) continue;
+            const b = new Binding(v);
+            b.bind();
+            bindings.push(b);
+        }
+    }
+
+    class Binding {
+        constructor(video) { this.video = video; this.heartbeatInterval = null; }
+        bind() {
+            if (!state.videoElement) initializeVideo(this.video);
+            this.heartbeatInterval = setInterval(() => {
+                sendMessage('currentTimeUpdate', { currentTime: this.video.currentTime });
+            }, 1000);
+            this.video.addEventListener('play', () => sendMessage('statusUpdate', { text: 'Video playing.' }));
+            this.video.addEventListener('pause', () => sendMessage('statusUpdate', { text: 'Video paused.' }));
+        }
+        unbind() { if (this.heartbeatInterval) clearInterval(this.heartbeatInterval); }
+    }
+
+    function startAdvancedScanning() {
+        bindToVideoElements();
+        if (!videoScanInterval) videoScanInterval = setInterval(bindToVideoElements, 1000);
+        if (!shadowRootInterval) shadowRootInterval = setInterval(incrementallyFindShadowRoots, 100);
+    }
+    function findAndInitializeVideo() {
+        if (!state.isEmbedded) return false;
+        console.log('[Iframe] Finding video...');
+        const v = document.querySelector('video');
+        if (v) { initializeVideo(v); return true; }
+        return false;
+    }
     function handleFullscreenChangeIframe() { if(!state.isEmbedded)return;const isFs=!!(document.fullscreenElement||document.webkitFullscreenElement);sendMessage('fullscreenChange',{isFullscreen:isFs});console.log(`[Iframe] Fullscreen:${isFs}`);sendCurrentTimeToTop(); }
     function sendCurrentTimeToTop() { if(!state.isEmbedded||!state.videoElement||state.videoElement.readyState===0)return;sendMessage('currentTimeUpdate',{currentTime:state.videoElement.currentTime});}
     function handleMutations(mutationsList,observer){if(!state.isEmbedded)return;for(const m of mutationsList){if(m.type==='childList'){m.addedNodes.forEach(n=>{if(n.nodeType===1){if(n.matches('.jw-texttrack-display,.jw-captions,.plyr__captions,.vjs-text-track-display'))hideElementAggressively(n,'mut:added sub disp');if(n.tagName==='TRACK'&&state.videoElement&&state.videoElement.contains(n)){disableTextTrack(n,'mut:added track');observeTextTrack(n);}n.querySelectorAll('.jw-texttrack-display,.jw-captions,.plyr__captions,.vjs-text-track-display,track').forEach(el=>{if(el.tagName==='TRACK'){disableTextTrack(el,'mut:added track sub');observeTextTrack(el);}else hideElementAggressively(el,'mut:added sub disp sub');});}});}}if(state.videoElement?.textTracks)Array.from(state.videoElement.textTracks).forEach(t=>disableTextTrack(t,'mut:periodic'));}
@@ -539,10 +719,10 @@ const unsafeWindow = window;
             const resObs = new ResizeObserver(() => updateSubtitleDisplay()); resObs.observe(document.body);
             document.addEventListener('fullscreenchange', handleFullscreenChangeTop); document.addEventListener('webkitfullscreenchange', handleFullscreenChangeTop);
             updateStatus('Searching for video player...'); logToPopup('Initialization complete.');
+            startAdvancedScanning();
         } else {
             console.log(`Migaku Script (Iframe v${GM_info.script.version}): Initializing.`);
-            const found = findAndInitializeVideo();
-            if (!found) state.subtitleCheckInterval = setInterval(() => { if (!state.videoElement) findAndInitializeVideo(); else { clearInterval(state.subtitleCheckInterval); state.subtitleCheckInterval = null; if(window.top) sendMessage('log', {text: 'Iframe video by interval.'});}}, 2000);
+            startAdvancedScanning();
         }
     }
 

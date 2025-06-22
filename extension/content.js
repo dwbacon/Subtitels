@@ -726,9 +726,7 @@ const unsafeWindow = window;
         }
     }
 
-    if (document.readyState === 'loading') {
-        window.addEventListener('DOMContentLoaded', () => setTimeout(initialize, 1500));
-    } else {
-        setTimeout(initialize, 1500);
-    }
+    // Wait for full page load before initializing to ensure the site doesn't
+    // overwrite injected elements during its own rendering process.
+    window.addEventListener('load', () => setTimeout(initialize, 1500));
 })();

@@ -8,6 +8,7 @@
     "https://hianimez.to/*",
     "*://hianime.to/*",
     "*://www.hianime.to/*",
+    "*://*.hianime.to/*",
     "https://*.megacloud.tv/embed*",
     "https://*.megacloud.blog/embed*",
     "https://animekai.to/*"
@@ -18,6 +19,7 @@
         "https://hianimez.to/*",
         "*://hianime.to/*",
         "*://www.hianime.to/*",
+        "*://*.hianime.to/*",
         "https://*.megacloud.tv/embed*",
         "https://*.megacloud.blog/embed*",
         "https://animekai.to/*"

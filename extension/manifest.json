@@ -4,10 +4,8 @@
   "description": "Fixes button sizing and layout on the Saved page for better text visibility. Includes all v0.50 features.",
   "version": "1.0",
   "permissions": ["storage"],
-  "options_page": "options.html",
   "host_permissions": [
     "https://hianimez.to/*",
-    "https://hianime.to/*",
     "https://*.megacloud.tv/embed*",
     "https://*.megacloud.blog/embed*",
     "https://animekai.to/*"
@@ -16,14 +14,12 @@
     {
       "matches": [
         "https://hianimez.to/*",
-        "https://hianime.to/*",
         "https://*.megacloud.tv/embed*",
         "https://*.megacloud.blog/embed*",
         "https://animekai.to/*"
       ],
-      "js": ["video_detection.js"],
-      "run_at": "document_idle",
-      "all_frames": true
+      "js": ["content.js"],
+      "run_at": "document_end"
     }
   ]
 }

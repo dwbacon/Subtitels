@@ -6,57 +6,92 @@ function GM_addStyle(css) {
 }
 
 function GM_getValue(key, defaultValue) {
-  try {
-    const val = localStorage.getItem(key);
-    return val !== null ? JSON.parse(val) : defaultValue;
-  } catch (e) {
-    return defaultValue;
-  }
+  return new Promise(resolve => {
+    chrome.storage.local.get([key], result => {
+      if (chrome.runtime.lastError) {
+        resolve(defaultValue);
+      } else {
+        resolve(result[key] !== undefined ? result[key] : defaultValue);
+      }
+    });
+  });
 }
 
 function GM_setValue(key, value) {
-  localStorage.setItem(key, JSON.stringify(value));
+  chrome.storage.local.set({ [key]: value });
 }
 
-const GM_info = { script: { version: '1.0' } };
+const version = chrome.runtime.getManifest().version;
 const unsafeWindow = window;
 
-(function() {
+(async function() {
     'use strict';
 
     // --- Global State ---
     const state = {
         subtitles: [], currentSubtitleIndex: -1, calculatedOffset: 0,
-        manualOffset: parseFloat(GM_getValue('manualSubtitleOffset', 0)), offset: 0,
-        fontSizeValue: parseInt(GM_getValue('subtitleFontSize', 22)),
-        minimized: GM_getValue('minimized', false), isEmbedded: window.self !== window.top,
+        manualOffset: 0, offset: 0,
+        fontSizeValue: 22,
+        minimized: false, isEmbedded: window.self !== window.top,
         videoElement: null, videoContainer: null, subtitleCheckInterval: null,
         lastProcessedTime: -1, iframeWindow: null, currentVideoTime: 0,
         logElement: null, controller: null,
-        currentPage: GM_getValue('migakuLastActiveTab', 'import'),
-        subtitleTextColor: GM_getValue('subtitleTextColor', '#FFFFFF'),
-        subtitleBackgroundColor: GM_getValue('subtitleBackgroundColor', '#000000'),
-        subtitleBackgroundOpacity: parseFloat(GM_getValue('subtitleBackgroundOpacity', 0.7)),
-        darkMode: GM_getValue('darkMode', false),
-        verticalPosition: parseInt(GM_getValue('verticalPosition', 15)),
-        outlineSize: parseFloat(GM_getValue('outlineSize', 1)),
-        advancedSettingsOpen: GM_getValue('advancedSettingsOpen', false),
+        currentPage: 'import',
+        subtitleTextColor: '#FFFFFF',
+        subtitleBackgroundColor: '#000000',
+        subtitleBackgroundOpacity: 0.7,
+        darkMode: false,
+        verticalPosition: 15,
+        outlineSize: 1,
+        advancedSettingsOpen: false,
         rawSubtitleContent: null, detectedEpisode: null, detectedAnimeName: null,
         subtitleFiles: {}, loadedSubtitleFilename: 'N/A',
         loadedSubtitleFileOriginalOffset: null,
         syncPointSelectionModal: null, nativeSubtitles: {}, syncPointsDisplayModal: null,
-        syncPoints: JSON.parse(GM_getValue('syncPoints', '[]')),
-        savedAnimeData: JSON.parse(GM_getValue('migakuSavedSubtitles', '{}')),
-        activeSavedAnimeKey: GM_getValue('migakuActiveSavedAnime', null),
-        activeImportId: GM_getValue('migakuActiveImportId', null),
-        ignorePageDetection: GM_getValue('migakuIgnorePageDetection', false),
+        syncPoints: [],
+        savedAnimeData: {},
+        activeSavedAnimeKey: null,
+        activeImportId: null,
+        ignorePageDetection: false,
         savedPageEditMode: false, editingTarget: null,
-        expandedAnimeInSaved: GM_getValue('migakuExpandedAnimeInSaved', null),
-        expandedImportInSaved: GM_getValue('migakuExpandedImportInSaved', null),
-        controllerLastWidth: GM_getValue('migakuControllerWidth', '380px'),
-        controllerLastHeight: GM_getValue('migakuControllerHeight', 'auto'),
+        expandedAnimeInSaved: null,
+        expandedImportInSaved: null,
+        controllerLastWidth: '380px',
+        controllerLastHeight: 'auto',
         filesDisplayModal: null,
     };
+
+    async function loadStoredState() {
+        const keys = [
+            'manualSubtitleOffset','subtitleFontSize','minimized','migakuLastActiveTab',
+            'subtitleTextColor','subtitleBackgroundColor','subtitleBackgroundOpacity','darkMode',
+            'verticalPosition','outlineSize','advancedSettingsOpen','syncPoints',
+            'migakuSavedSubtitles','migakuActiveSavedAnime','migakuActiveImportId',
+            'migakuIgnorePageDetection','migakuExpandedAnimeInSaved','migakuExpandedImportInSaved',
+            'migakuControllerWidth','migakuControllerHeight'
+        ];
+        const result = await new Promise(r => chrome.storage.local.get(keys, r));
+        state.manualOffset = parseFloat(result.manualSubtitleOffset ?? 0);
+        state.fontSizeValue = parseInt(result.subtitleFontSize ?? 22);
+        state.minimized = result.minimized ?? false;
+        state.currentPage = result.migakuLastActiveTab ?? 'import';
+        state.subtitleTextColor = result.subtitleTextColor ?? '#FFFFFF';
+        state.subtitleBackgroundColor = result.subtitleBackgroundColor ?? '#000000';
+        state.subtitleBackgroundOpacity = parseFloat(result.subtitleBackgroundOpacity ?? 0.7);
+        state.darkMode = result.darkMode ?? false;
+        state.verticalPosition = parseInt(result.verticalPosition ?? 15);
+        state.outlineSize = parseFloat(result.outlineSize ?? 1);
+        state.advancedSettingsOpen = result.advancedSettingsOpen ?? false;
+        try { state.syncPoints = JSON.parse(result.syncPoints ?? '[]'); } catch(e){ state.syncPoints = []; }
+        try { state.savedAnimeData = JSON.parse(result.migakuSavedSubtitles ?? '{}'); } catch(e){ state.savedAnimeData = {}; }
+        state.activeSavedAnimeKey = result.migakuActiveSavedAnime ?? null;
+        state.activeImportId = result.migakuActiveImportId ?? null;
+        state.ignorePageDetection = result.migakuIgnorePageDetection ?? false;
+        state.expandedAnimeInSaved = result.migakuExpandedAnimeInSaved ?? null;
+        state.expandedImportInSaved = result.migakuExpandedImportInSaved ?? null;
+        state.controllerLastWidth = result.migakuControllerWidth ?? '380px';
+        state.controllerLastHeight = result.migakuControllerHeight ?? 'auto';
+    }
 
     function calculateAverageOffset(points) {
         if (!points || points.length === 0) return 0;
@@ -64,15 +99,7 @@ const unsafeWindow = window;
         return parseFloat((sum / points.length).toFixed(1));
     }
 
-    if (state.syncPoints.length > 0 && state.loadedSubtitleFileOriginalOffset === null) {
-        state.calculatedOffset = calculateAverageOffset(state.syncPoints);
-    } else if (state.loadedSubtitleFileOriginalOffset !== null) {
-        state.calculatedOffset = state.loadedSubtitleFileOriginalOffset;
-    } else {
-        state.calculatedOffset = 0;
-    }
-    state.offset = state.calculatedOffset + state.manualOffset;
-    // GM_setValue('subtitleOffset', state.offset); // Set when changed
+    // Values depending on stored data will be set in initialize()
 
     const errorBar = {
         element: null, messageElement: null, dismissButton: null,
@@ -276,6 +303,11 @@ const unsafeWindow = window;
 
     // --- Cross-Window Communication ---
     window.addEventListener('message', handleMessage);
+    window.addEventListener('beforeunload', () => {
+        window.removeEventListener('message', handleMessage);
+        document.removeEventListener('fullscreenchange', handleFullscreenChangeTop);
+        document.removeEventListener('webkitfullscreenchange', handleFullscreenChangeTop);
+    });
     function handleMessage(event) {
         const message = event.data;
         if (message.source !== 'migaku-subtitle-importer') return;
@@ -406,7 +438,7 @@ const unsafeWindow = window;
                 <h4>Debug Log <button id="copy-log-button" style="padding:2px 5px;font-size:10px;margin-left:5px;">Copy</button></h4><div class="log-area"></div>
             </div>`;
     }
-    function aboutPageHTML() { return `<h4>About</h4><p>Migaku Subtitle Importer (v${GM_info.script.version})</p><p>Author: Derek</p><p>Manages local subtitle collections for Migaku.</p>`; }
+    function aboutPageHTML() { return `<h4>About</h4><p>Migaku Subtitle Importer (v${version})</p><p>Author: Derek</p><p>Manages local subtitle collections for Migaku.</p>`; }
 
     function setupCommonEventListeners() {
         document.getElementById('migaku-toggle-btn').addEventListener('click', toggleMinimize);
@@ -480,7 +512,27 @@ const unsafeWindow = window;
     function adjustVerticalPosition(e) { if (state.isEmbedded) return; state.verticalPosition = parseInt(e.target.value); document.getElementById('vertical-position-value').textContent = state.verticalPosition; GM_setValue('verticalPosition', state.verticalPosition); logToPopup(`Vertical pos: ${state.verticalPosition}%.`); applyVerticalPosition(); }
     function applyVerticalPosition() { if (state.isEmbedded) return; const wrapper = document.getElementById('migaku-subtitle-display-wrapper'); if (!wrapper) return; const isFs = document.fullscreenElement || document.webkitFullscreenElement; if (!isFs) { const iframe = document.querySelector(`iframe[src*="megacloud.tv/embed"], iframe[src*="megacloud.blog/embed"]`); if (iframe) { const rect = iframe.getBoundingClientRect(); const bottomOffset = rect.height * (state.verticalPosition/100); const vpBottom = window.innerHeight - (rect.bottom - bottomOffset); wrapper.style.position = 'fixed'; wrapper.style.top = 'auto'; wrapper.style.bottom = `${vpBottom}px`; wrapper.style.left = `${rect.left}px`; wrapper.style.width = `${rect.width}px`; wrapper.style.transform = 'none'; wrapper.style.maxWidth = '80%'; } else { wrapper.style.bottom = `${state.verticalPosition}%`; wrapper.style.left = '0'; wrapper.style.width = '100%'; }} else { wrapper.style.bottom = `${state.verticalPosition}%`; wrapper.style.left = '0'; wrapper.style.width = '100%'; wrapper.style.maxWidth = '100%'; }}
     function adjustOutlineSize(e) { if (state.isEmbedded) return; state.outlineSize = parseFloat(e.target.value); document.getElementById('outline-size-value').textContent = state.outlineSize.toFixed(1); GM_setValue('outlineSize', state.outlineSize); logToPopup(`Outline: ${state.outlineSize.toFixed(1)}px.`); applyOutlineSize(); }
-    function applyOutlineSize() { if (state.isEmbedded) return; const el = document.querySelector('#migaku-subtitle-display-wrapper .migaku-subtitle-text'); if (!el) return; const s = state.outlineSize; let shadow = 'none'; if (s > 0) shadow = `-${s}px -${s}px 0 #000,${s}px -${s}px 0 #000,-${s}px ${s}px 0 #000,${s}px ${s}px 0 #000,0 -${s}px 0 #000,0 ${s}px 0 #000,-${s}px 0 0 #000,${s}px 0 0 #000`.replace(/\s+/g,''); el.style.textShadow = shadow; }
+    function applyOutlineSize() {
+        if (state.isEmbedded) return;
+        const el = document.querySelector('#migaku-subtitle-display-wrapper .migaku-subtitle-text');
+        if (!el) return;
+        const s = state.outlineSize;
+        let shadow = 'none';
+        if (s > 0) {
+            const parts = [
+                `-${s}px -${s}px 0 #000`,
+                `${s}px -${s}px 0 #000`,
+                `-${s}px ${s}px 0 #000`,
+                `${s}px ${s}px 0 #000`,
+                `0 -${s}px 0 #000`,
+                `0 ${s}px 0 #000`,
+                `-${s}px 0 0 #000`,
+                `${s}px 0 0 #000`
+            ];
+            shadow = parts.join(',');
+        }
+        el.style.textShadow = shadow;
+    }
     function hexToRgb(hex) { const r = /^#?([a-f\d])([a-f\d])([a-f\d])$/i; hex = hex.replace(r, (m,r,g,b)=>r+r+g+g+b+b); const res = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex); return res ? {r:parseInt(res[1],16),g:parseInt(res[2],16),b:parseInt(res[3],16)} : null; }
     function applySubtitleAppearanceSettings() { if(state.isEmbedded)return;state.subtitleTextColor=GM_getValue('subtitleTextColor','#FFFFFF');state.subtitleBackgroundColor=GM_getValue('subtitleBackgroundColor','#000000');state.subtitleBackgroundOpacity=parseFloat(GM_getValue('subtitleBackgroundOpacity',0.7));state.darkMode=GM_getValue('darkMode',false);state.verticalPosition=parseInt(GM_getValue('verticalPosition',15));state.outlineSize=parseFloat(GM_getValue('outlineSize',1));state.ignorePageDetection=GM_getValue('migakuIgnorePageDetection',false);if(state.controller){state.darkMode?state.controller.classList.add('dark-mode'):state.controller.classList.remove('dark-mode');errorBar.toggleDarkMode(state.darkMode);}const elTxtC=document.getElementById('subtitle-text-color');if(elTxtC)elTxtC.value=state.subtitleTextColor;const elBgC=document.getElementById('subtitle-background-color');if(elBgC)elBgC.value=state.subtitleBackgroundColor;const elBgO=document.getElementById('subtitle-background-opacity');if(elBgO){elBgO.value=state.subtitleBackgroundOpacity;const elBgOV=document.getElementById('background-opacity-value');if(elBgOV)elBgOV.textContent=state.subtitleBackgroundOpacity.toFixed(2);}const elDM=document.getElementById('dark-mode-toggle');if(elDM)elDM.checked=state.darkMode;const elVP=document.getElementById('vertical-position');if(elVP){elVP.value=state.verticalPosition;const elVPV=document.getElementById('vertical-position-value');if(elVPV)elVPV.textContent=state.verticalPosition;}const elOS=document.getElementById('outline-size');if(elOS){elOS.value=state.outlineSize;const elOSV=document.getElementById('outline-size-value');if(elOSV)elOSV.textContent=state.outlineSize.toFixed(1);}const elIPD=document.getElementById('ignore-page-detection-toggle');if(elIPD)elIPD.checked=state.ignorePageDetection;updateSubtitleDisplay();}
     function updateStatus(message) { if(state.isEmbedded)return;const statusEl=document.getElementById('subtitle-status'),statusRow=document.getElementById('status-row');if(statusEl&&statusRow){statusEl.textContent=message;const show=state.subtitles.length>0||message.includes('Searching')||message.includes('Video found')||message.includes('Loaded')||message.includes('Imported');statusRow.style.display=show?'flex':'none';}}
@@ -489,8 +541,8 @@ const unsafeWindow = window;
     function handleFullscreenChangeTop() { if(state.isEmbedded)return;const isFs=!!(document.fullscreenElement||document.webkitFullscreenElement);const ctrl=document.getElementById('migaku-controller');logToPopup(`Fullscreen(top):${isFs}`);if(ctrl)ctrl.style.display=isFs?'none':'flex';updateSubtitleDisplay();}
     function showFullSubtitlesModal() { if(state.isEmbedded)return;errorBar.hide();if(!state.rawSubtitleContent){errorBar.show('No active sub to show content.');return;}const modal=document.getElementById('subtitle-file-modal'),contEl=document.getElementById('full-subtitle-text');if(modal&&contEl){contEl.textContent=state.rawSubtitleContent;modal.style.display='flex';logToPopup('Showing full sub content.');}}
     function hideFullSubtitlesModal() { if(state.isEmbedded)return;const modal=document.getElementById('subtitle-file-modal');if(modal)modal.style.display='none';}
-    function copyLogToClipboard() { if(state.isEmbedded||!state.logElement)return;const txt=state.logElement.innerText;if(navigator.clipboard?.writeText){navigator.clipboard.writeText(txt).then(()=>logToPopup('Log copied!')).catch(()=>fallbackCopyToClipboard(txt));}else fallbackCopyToClipboard(txt);}
-    function fallbackCopyToClipboard(text) { const area=document.createElement('textarea');area.value=text;area.style.position='fixed';document.body.appendChild(area);area.focus();area.select();try{document.execCommand('copy');logToPopup('Log copied(fallback)!');}catch(e){logToPopup('Log copy failed.');}document.body.removeChild(area);}
+    function copyLogToClipboard() { if(state.isEmbedded||!state.logElement)return;const txt=state.logElement.innerText;navigator.clipboard.writeText(txt).then(()=>logToPopup('Log copied!')).catch(()=>logToPopup('Log copy failed.'));
+    }
 
     function markSyncPoint() { if(state.isEmbedded)return;errorBar.hide();if(state.subtitles.length===0){errorBar.show('Load sub first.');return;}if(!state.iframeWindow||(state.currentVideoTime===0&&!state.videoElement?.paused)){errorBar.show('Video not ready/time 0. Pause if at start.');return;}const vTime=state.currentVideoTime;const cues=findNearbySubtitles(vTime,5);if(cues.length===0){errorBar.show(`No nearby cues at ${vTime.toFixed(1)}s.`);return;}let nativeCueTxt=null;for(const trL in state.nativeSubtitles){const nC=state.nativeSubtitles[trL].find(c=>vTime>=c.start&&vTime<=c.end);if(nC){nativeCueTxt=`Native(${trL}):"${nC.text}"`;break;}}const modal=state.syncPointSelectionModal,listEl=modal.querySelector('#sync-point-selection-list'),timeEl=modal.querySelector('#sync-modal-video-time'),hintEl=modal.querySelector('#native-subtitle-hint');if(!modal||!listEl||!timeEl||!hintEl)return;timeEl.textContent=vTime.toFixed(1);listEl.innerHTML='';hintEl.style.display=nativeCueTxt?(hintEl.textContent=nativeCueTxt,'block'):'none';cues.forEach(c=>{const d=document.createElement('div');d.textContent=`[${formatTime(c.start)}] ${c.text.substring(0,100)}`;d.dataset.subtitleTime=c.start;d.dataset.videoTime=vTime;d.addEventListener('click',handleSyncCueSelected);listEl.appendChild(d);});modal.style.display='flex';}
     function findNearbySubtitles(time, count = 5) { if(state.subtitles.length===0)return[];let startIdx=state.subtitles.findIndex(s=>s.start>=time);if(startIdx===-1)startIdx=state.subtitles.length-count;startIdx=Math.max(0,startIdx-Math.floor(count/2));const endIdx=Math.min(state.subtitles.length,startIdx+count);return state.subtitles.slice(startIdx,endIdx);}
@@ -525,9 +577,18 @@ const unsafeWindow = window;
 
     // --- Initialization ---
     function initialize() {
+        if (state.syncPoints.length > 0 && state.loadedSubtitleFileOriginalOffset === null) {
+            state.calculatedOffset = calculateAverageOffset(state.syncPoints);
+        } else if (state.loadedSubtitleFileOriginalOffset !== null) {
+            state.calculatedOffset = state.loadedSubtitleFileOriginalOffset;
+        } else {
+            state.calculatedOffset = 0;
+        }
+        state.offset = state.calculatedOffset + state.manualOffset;
+
         if (!state.isEmbedded) {
             initializeController();
-            logToPopup(`Migaku Script: Initializing (v${GM_info.script.version})...`);
+            logToPopup(`Migaku Script: Initializing (v${version})...`);
             if (state.activeSavedAnimeKey && state.savedAnimeData[state.activeSavedAnimeKey]) {
                 if (!state.activeImportId && state.savedAnimeData[state.activeSavedAnimeKey].length > 0) {
                     state.activeImportId = state.savedAnimeData[state.activeSavedAnimeKey][0].importId; GM_setValue('migakuActiveImportId', state.activeImportId);
@@ -548,17 +609,43 @@ const unsafeWindow = window;
                  clearCurrentSubtitlesOnly();
             }
 
-            setInterval(() => { if(!state.iframeWindow){const iframes=document.querySelectorAll('iframe');for(const i of iframes){try{if(i.src&&(i.src.includes('megacloud.tv/embed')||i.src.includes('megacloud.blog/embed'))){i.contentWindow.postMessage({source:'migaku-subtitle-importer',command:'handshake'},'*');if(!document.body.classList.contains('in-embed-player'))document.body.classList.add('in-embed-player');}}catch(e){}}} }, 3000);
-            setInterval(() => { if (!state.ignorePageDetection) { detectEpisode(); detectAnimeName(); }}, 2500);
-            const resObs = new ResizeObserver(() => updateSubtitleDisplay()); resObs.observe(document.body);
+            setInterval(() => {
+                if(!state.iframeWindow){
+                    const iframes=document.querySelectorAll('iframe');
+                    for(const i of iframes){
+                        try{
+                            if(i.src&&(i.src.includes('megacloud.tv/embed')||i.src.includes('megacloud.blog/embed'))){
+                                i.contentWindow.postMessage({source:'migaku-subtitle-importer',command:'handshake'},'*');
+                                if(!document.body.classList.contains('in-embed-player')) document.body.classList.add('in-embed-player');
+                            }
+                        }catch(e){
+                            console.error('Iframe access error',e);
+                        }
+                    }
+                }
+                if(!state.ignorePageDetection){
+                    detectEpisode();
+                    detectAnimeName();
+                }
+            },3000);
+            const resObs = new ResizeObserver(() => requestAnimationFrame(updateSubtitleDisplay));
+            resObs.observe(document.documentElement);
             document.addEventListener('fullscreenchange', handleFullscreenChangeTop); document.addEventListener('webkitfullscreenchange', handleFullscreenChangeTop);
             updateStatus('Searching for video player...'); logToPopup('Initialization complete.');
         } else {
-            console.log(`Migaku Script (Iframe v${GM_info.script.version}): Initializing.`);
+            console.log(`Migaku Script (Iframe v${version}): Initializing.`);
             const found = findAndInitializeVideo();
             if (!found) state.subtitleCheckInterval = setInterval(() => { if (!state.videoElement) findAndInitializeVideo(); else { clearInterval(state.subtitleCheckInterval); state.subtitleCheckInterval = null; if(window.top) sendMessage('log', {text: 'Iframe video by interval.'});}}, 2000);
         }
     }
 
-    setTimeout(initialize, 1500);
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadStoredState();
+            initialize();
+        });
+    } else {
+        await loadStoredState();
+        initialize();
+    }
 })();

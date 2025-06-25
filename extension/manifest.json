@@ -3,7 +3,9 @@
   "name": "Main Working - grey Extension",
   "description": "Fixes button sizing and layout on the Saved page for better text visibility. Includes all v0.50 features.",
   "version": "1.0",
-  "permissions": ["storage"],
+  "permissions": [
+    "storage"
+  ],
   "host_permissions": [
     "https://hianime.to/*",
     "https://*.megacloud.tv/embed*",
@@ -12,13 +14,17 @@
   ],
   "content_scripts": [
     {
-        "matches": [
-          "https://hianime.to/*",
+      "matches": [
+        "https://hianime.to/*",
         "https://*.megacloud.tv/embed*",
         "https://*.megacloud.blog/embed*",
         "https://animekai.to/*"
       ],
-      "js": ["content.js"],
+      "js": [
+        "videoDetection.js",
+        "pageDetection.js",
+        "content.js"
+      ],
       "run_at": "document_end"
     }
   ]

@@ -144,10 +144,14 @@ const unsafeWindow = window;
         #migaku-controller.dark-mode .log-area strong { color: #E5E5EA; }
         #migaku-controller.dark-mode .settings-row label { color: #D1D1D6; }
         #migaku-controller.dark-mode .settings-row span { color: #bbb; }
+
         #migaku-controller.dark-mode #page-about h4 { color: #D1D1D6; }
         #migaku-controller.dark-mode #page-about p { color: #bbb; }
         #migaku-controller.dark-mode #page-about a { color: #66bb6a; }
         #migaku-controller.dark-mode .advanced-settings-header { color: #D1D1D6; }
+
+        #migaku-controller.dark-mode .advanced-settings-header { color: #ccc; }
+
         #migaku-controller.dark-mode .advanced-settings-header button { color: #bbb; }
         #migaku-controller.minimized { min-width: 50px !important; min-height: 30px !important; width: 50px !important; height: 30px !important; overflow: hidden !important; resize: none; padding: 5px; }
         #migaku-controller.minimized .controller-content, #migaku-controller.minimized .log-area, #migaku-controller.minimized .controller-nav, #migaku-controller.minimized #migaku-error-bar, #migaku-controller.minimized h3 { display: none; }
@@ -199,6 +203,7 @@ const unsafeWindow = window;
         .settings-row input[type="range"] { padding: 0; }
         .settings-row span { margin-left: 8px; font-size: 13px; color: #3A3A3C; flex-grow: 1; word-break: break-word; }
         #migaku-controller.dark-mode .settings-row span { color: #bbb; }
+
         #page-about h4 { margin-top: 0; margin-bottom: 10px; color: #3A3A3C; }
         #migaku-controller.dark-mode #page-about h4 { color: #D1D1D6; }
         #page-about p { margin-bottom: 8px; font-size: 13px; line-height: 1.4; color: #444; }
@@ -209,6 +214,11 @@ const unsafeWindow = window;
         .advanced-settings-header { margin-top: 15px; margin-bottom: 10px; font-size: 16px; font-weight: bold; cursor: pointer; color: #3A3A3C; display: flex; align-items: center; }
         #migaku-controller.dark-mode .advanced-settings-header { color: #D1D1D6; }
         .advanced-settings-header button { background: none; border: none; font-size: 18px; margin-left: 5px; padding: 0; cursor: pointer; color: #3A3A3C; }
+
+        .advanced-settings-header { margin-top: 15px; margin-bottom: 10px; font-size: 16px; font-weight: bold; cursor: pointer; color: #555; display: flex; align-items: center; }
+        #migaku-controller.dark-mode .advanced-settings-header { color: #ccc; }
+        .advanced-settings-header button { background: none; border: none; font-size: 18px; margin-left: 5px; padding: 0; cursor: pointer; color: #555; }
+
         #migaku-controller.dark-mode .advanced-settings-header button { color: #bbb; }
         .advanced-settings-content { display: none; padding-left: 10px; border-left: 2px solid #E5E5EA; padding-top: 5px; }
         #migaku-controller.dark-mode .advanced-settings-content { border-left-color: #3A3A3C; }
@@ -369,7 +379,6 @@ const unsafeWindow = window;
             <div class="controller-nav">
                 <button data-page="import">Import</button> <button data-page="saved">Saved</button>
                 <button data-page="sync">Sync</button> <button data-page="settings">Settings</button>
-                <button data-page="about">About</button>
             </div>
             <div class="controller-content"></div>`;
     }
@@ -438,8 +447,6 @@ const unsafeWindow = window;
                 <h4>Debug Log <button id="copy-log-button" style="padding:2px 5px;font-size:10px;margin-left:5px;">Copy</button></h4><div class="log-area"></div>
             </div>`;
     }
-    function aboutPageHTML() { return `<h4>About</h4><p>Migaku Subtitle Importer (v${version})</p><p>Author: Derek</p><p>Manages local subtitle collections for Migaku.</p>`; }
-
     function setupCommonEventListeners() {
         document.getElementById('migaku-toggle-btn').addEventListener('click', toggleMinimize);
         state.controller.querySelectorAll('.controller-nav button').forEach(b => b.addEventListener('click', handleNavigationClick));
@@ -452,7 +459,7 @@ const unsafeWindow = window;
     function createModalsAndListeners() { const sw=document.createElement('div');sw.id='migaku-subtitle-display-wrapper';document.body.appendChild(sw);const sfm=document.createElement('div');sfm.id='subtitle-file-modal';sfm.innerHTML=`<div id="subtitle-file-modal-content"><span id="subtitle-file-modal-close">&times;</span><h4>Full Subtitle Content</h4><pre id="full-subtitle-text"></pre></div>`;document.body.appendChild(sfm);sfm.querySelector('#subtitle-file-modal-close').addEventListener('click',hideFullSubtitlesModal);sfm.addEventListener('click',(e)=>{if(e.target===sfm)hideFullSubtitlesModal();});state.syncPointSelectionModal=document.createElement('div');state.syncPointSelectionModal.id='sync-point-selection-modal';state.syncPointSelectionModal.innerHTML=`<div id="sync-point-selection-content"><span id="sync-point-selection-close">&times;</span><h4>Select Cue (Video: <span id="sync-modal-video-time"></span>s)</h4><div id="native-subtitle-hint" class="native-subtitle-hint" style="display:none;"></div><div id="sync-point-selection-list"></div></div>`;document.body.appendChild(state.syncPointSelectionModal);state.syncPointSelectionModal.querySelector('#sync-point-selection-close').addEventListener('click',hideSyncPointSelectionModal);state.syncPointSelectionModal.addEventListener('click',(e)=>{if(e.target===state.syncPointSelectionModal)hideSyncPointSelectionModal();});state.syncPointsDisplayModal=document.createElement('div');state.syncPointsDisplayModal.id='sync-points-display-modal';state.syncPointsDisplayModal.innerHTML=`<div id="sync-points-display-content"><span id="sync-points-display-close">&times;</span><h4>Marked Sync Points</h4><div id="sync-points-list-display"></div></div>`;document.body.appendChild(state.syncPointsDisplayModal);state.syncPointsDisplayModal.querySelector('#sync-points-display-close').addEventListener('click',hideSyncPointsDisplayModal);state.syncPointsDisplayModal.addEventListener('click',(e)=>{if(e.target===state.syncPointsDisplayModal)hideSyncPointsDisplayModal();});const fm=document.createElement('div');fm.id='files-display-modal';fm.innerHTML=`<div id="files-display-modal-content"><div id="files-display-modal-header"><h4 id="files-display-modal-title">Files</h4><button id="files-display-modal-close">&times;</button></div><div id="files-list-in-modal"></div></div>`;document.body.appendChild(fm);state.filesDisplayModal=fm;fm.querySelector('#files-display-modal-close').addEventListener('click',hideFilesDisplayModal);fm.addEventListener('click',(e)=>{if(e.target.id==='files-display-modal')hideFilesDisplayModal();});}
 
     function handleNavigationClick(event) { if (state.isEmbedded) return; const pageId = event.target.dataset.page; if (pageId && pageId !== state.currentPage) { showPage(pageId); GM_setValue('migakuLastActiveTab', pageId); }}
-    function showPage(pageId) { if (state.isEmbedded || !state.controller) return; const contentArea = state.controller.querySelector('.controller-content'); if (!contentArea) { logToPopup("Error: Controller content area not found."); return; } let pageHTML = ''; switch (pageId) { case 'import': pageHTML = importPageHTML(); break; case 'saved': pageHTML = savedPageHTML(); break; case 'sync': pageHTML = syncPageHTML(); break; case 'settings': pageHTML = settingsPageHTML(); break; case 'about': pageHTML = aboutPageHTML(); break; default: logToPopup(`Unknown pageId: ${pageId}. Defaulting to import.`); pageHTML = importPageHTML(); pageId = 'import'; } contentArea.innerHTML = pageHTML; state.controller.querySelectorAll('.controller-nav button').forEach(b => b.classList.remove('active')); const targetButton = state.controller.querySelector(`.controller-nav button[data-page="${pageId}"]`); if (targetButton) targetButton.classList.add('active'); else { logToPopup(`Could not find nav button for page ${pageId}`);} state.currentPage = pageId; logToPopup(`Switched to page: ${pageId}`); if (pageId === 'import') setupImportPageListeners(); else if (pageId === 'saved') setupSavedPageListeners(); else if (pageId === 'sync') setupSyncPageListeners(); else if (pageId === 'settings') setupSettingsPageListeners(); updateActiveSavedDisplay(); updateSyncPointsDisplay(); if(pageId === 'settings' && !state.logElement) state.logElement = state.controller.querySelector('.log-area'); }
+    function showPage(pageId) { if (state.isEmbedded || !state.controller) return; const contentArea = state.controller.querySelector('.controller-content'); if (!contentArea) { logToPopup("Error: Controller content area not found."); return; } let pageHTML = ''; switch (pageId) { case 'import': pageHTML = importPageHTML(); break; case 'saved': pageHTML = savedPageHTML(); break; case 'sync': pageHTML = syncPageHTML(); break; case 'settings': pageHTML = settingsPageHTML(); break; default: logToPopup(`Unknown pageId: ${pageId}. Defaulting to import.`); pageHTML = importPageHTML(); pageId = 'import'; } contentArea.innerHTML = pageHTML; state.controller.querySelectorAll('.controller-nav button').forEach(b => b.classList.remove('active')); const targetButton = state.controller.querySelector(`.controller-nav button[data-page="${pageId}"]`); if (targetButton) targetButton.classList.add('active'); else { logToPopup(`Could not find nav button for page ${pageId}`);} state.currentPage = pageId; logToPopup(`Switched to page: ${pageId}`); if (pageId === 'import') setupImportPageListeners(); else if (pageId === 'saved') setupSavedPageListeners(); else if (pageId === 'sync') setupSyncPageListeners(); else if (pageId === 'settings') setupSettingsPageListeners(); updateActiveSavedDisplay(); updateSyncPointsDisplay(); if(pageId === 'settings' && !state.logElement) state.logElement = state.controller.querySelector('.log-area'); }
     function toggleMinimize() { if (state.isEmbedded) return; const controller = state.controller; state.minimized = !state.minimized; GM_setValue('minimized', state.minimized); if (state.minimized) { if (controller.style.width && controller.style.width !== 'auto' && controller.style.width !== '50px') { state.controllerLastWidth = controller.style.width; GM_setValue('migakuControllerWidth', state.controllerLastWidth); } if (controller.style.height && controller.style.height !== 'auto' && controller.style.height !== '30px') { state.controllerLastHeight = controller.style.height; GM_setValue('migakuControllerHeight', state.controllerLastHeight); } controller.classList.add('minimized'); } else { controller.classList.remove('minimized'); controller.style.width = state.controllerLastWidth || '380px'; controller.style.height = (state.controllerLastHeight === 'auto' || !state.controllerLastHeight) ? '' : state.controllerLastHeight; controller.style.overflow = 'hidden'; } logToPopup(`Controller minimized: ${state.minimized}`); }
     function toggleDarkMode() { if (state.isEmbedded) return; state.darkMode = document.getElementById('dark-mode-toggle').checked; GM_setValue('darkMode', state.darkMode); state.darkMode ? state.controller.classList.add('dark-mode') : state.controller.classList.remove('dark-mode'); errorBar.toggleDarkMode(state.darkMode); logToPopup(`Dark mode ${state.darkMode ? 'enabled' : 'disabled'}.`); applySubtitleAppearanceSettings(); }
     function toggleAdvancedSettings() { if (state.isEmbedded) return; const content = document.getElementById('advanced-settings-content'), btn = document.getElementById('toggle-advanced-settings'); state.advancedSettingsOpen = !content.classList.contains('active'); GM_setValue('advancedSettingsOpen', state.advancedSettingsOpen); if (state.advancedSettingsOpen) { content.classList.add('active'); btn.textContent = '▲'; } else { content.classList.remove('active'); btn.textContent = '▼'; } logToPopup(`Advanced settings ${state.advancedSettingsOpen ? 'shown' : 'hidden'}.`); }
@@ -556,12 +563,62 @@ const unsafeWindow = window;
     function formatTime(seconds) { const h=Math.floor(seconds/3600),m=Math.floor(seconds%3600/60),s=seconds%60;return `${h>0?h+':':''}${String(m).padStart(2,'0')}:${String(s.toFixed(3)).padStart(6,'0')}`;}
 
     function extractEpisodeNumber(filename) { if (!filename) return null; const lower = filename.toLowerCase(); const patterns = [ /_(\d{1,3})\.(?:srt|vtt|ass|ssa)$/, /-\s*(\d{1,3})\.(?:srt|vtt|ass|ssa)$/, /[^a-z0-9](\d{1,3})\.(?:srt|vtt|ass|ssa)$/, /episode\s*(\d{1,3})/i, /\s-\s*(\d{1,3})\s*(?:\[|\(|$)/, /s\d{1,2}e(\d{1,3})/i, /[^\w-](\d{1,3})(?:[^\w-]|$)/ ]; for (const p of patterns) { const match = lower.match(p); if (match && match[1]) { const ep = parseInt(match[1],10); if (ep > 0 && ep < 1000) return ep; }} return null; }
-    function detectAnimeName() { if (state.isEmbedded || state.ignorePageDetection) return; const txt = document.body.innerText; const regex = /HiAnime is the best site to watch\s+(.+?)\s+(?:SUB|DUB)\s+online/i; const match = txt.match(regex); let newName = null; if (match&&match[1]) newName = match[1].trim(); if (newName && newName !== state.detectedAnimeName) { state.detectedAnimeName = newName; const el=document.getElementById('detected-anime-name'); if(el)el.textContent=state.detectedAnimeName; logToPopup(`Detected anime: ${state.detectedAnimeName}`); attemptToMatchAndLoadCurrentPageDetection(); } else if (!state.detectedAnimeName && newName) { state.detectedAnimeName=newName; const el=document.getElementById('detected-anime-name'); if(el)el.textContent=state.detectedAnimeName; logToPopup(`Initial anime: ${state.detectedAnimeName}`); attemptToMatchAndLoadCurrentPageDetection(); }}
+    function detectAnimeName() {
+        if (state.isEmbedded || state.ignorePageDetection) return;
+        let newName = null;
+
+        // 1) Try meta tags commonly used for titles
+        const metaSelectors = [
+            'meta[property="og:title"]', 'meta[name="title"]',
+            'meta[property="twitter:title"]'
+        ];
+        for (const sel of metaSelectors) {
+            const content = document.querySelector(sel)?.content;
+            if (content) {
+                const m = content.match(/^(.*?)(?:\s+(?:Episode|\||-|$))/i);
+                if (m && m[1]) { newName = m[1].trim(); break; }
+            }
+        }
+
+        // 2) Fallback to document.title
+        if (!newName && document.title) {
+            const m = document.title.match(/^(.*?)(?:\s+(?:Episode|\||-|$))/i);
+            if (m && m[1]) newName = m[1].trim();
+        }
+
+        // 3) Check common header elements
+        if (!newName) {
+            const heading = document.querySelector('h1, h2');
+            if (heading) newName = heading.textContent.trim();
+        }
+
+        // 4) Final fallback: derive from URL slug
+        if (!newName) {
+            const slugMatch = window.location.pathname.match(/\/anime\/([^\/]+)/);
+            if (slugMatch && slugMatch[1]) newName = slugMatch[1].replace(/-/g, ' ');
+        }
+
+        if (!newName) return;
+
+        if (newName !== state.detectedAnimeName) {
+            state.detectedAnimeName = newName;
+            const el = document.getElementById('detected-anime-name');
+            if (el) el.textContent = state.detectedAnimeName;
+            logToPopup(`Detected anime: ${state.detectedAnimeName}`);
+            attemptToMatchAndLoadCurrentPageDetection();
+        } else if (!state.detectedAnimeName && newName) {
+            state.detectedAnimeName = newName;
+            const el = document.getElementById('detected-anime-name');
+            if (el) el.textContent = state.detectedAnimeName;
+            logToPopup(`Initial anime: ${state.detectedAnimeName}`);
+            attemptToMatchAndLoadCurrentPageDetection();
+        }
+    }
     function detectEpisode() { if (state.isEmbedded || state.ignorePageDetection) return; const txt = document.body.innerText; const regex = /You are watching\s*Episode\s*(\d+)/i; const match = txt.match(regex); let newEp = null; if (match&&match[1]) newEp = parseInt(match[1],10); if (newEp !== null && newEp !== state.detectedEpisode) { state.detectedEpisode=newEp; const el=document.getElementById('detected-episode'); if(el)el.textContent=state.detectedEpisode; logToPopup(`Detected ep: ${state.detectedEpisode}`); attemptToMatchAndLoadCurrentPageDetection(); } else if (state.detectedEpisode === null && newEp !== null) { state.detectedEpisode=newEp; const el=document.getElementById('detected-episode'); if(el)el.textContent=state.detectedEpisode; logToPopup(`Initial ep: ${state.detectedEpisode}`); attemptToMatchAndLoadCurrentPageDetection(); }}
 
     function hideElementAggressively(element, reason) { if (!element) return; element.style.setProperty('display', 'none', 'important'); element.style.setProperty('visibility', 'hidden', 'important'); element.style.setProperty('pointer-events', 'none', 'important'); console.log(`[Iframe] Hid: ${element.tagName}${element.id?'#'+element.id:''}${element.className?'.'+element.className.split(' ').join('.'):''} (${reason})`); }
     function disableTextTrack(track, reason) { if (!track || track.label === "Migaku Subtitles") return; track.mode = 'disabled'; console.log(`[Iframe] Disabled track: ${track.label} (${reason})`); }
-    function findAndInitializeVideo() { if(!state.isEmbedded)return false;console.log('[Iframe] Finding video...');let v=document.querySelector('video');if(v){state.videoElement=v;let c=v.parentElement;while(c&&!c.classList.contains('jw-media')&&!c.classList.contains('plyr')&&c.tagName!=='BODY')c=c.parentElement;state.videoContainer=c||v.parentElement;if(window.getComputedStyle(state.videoContainer).position==='static')state.videoContainer.style.position='relative';state.videoContainer.classList.add('video-wrapper-migaku');document.addEventListener('fullscreenchange',handleFullscreenChangeIframe);document.addEventListener('webkitfullscreenchange',handleFullscreenChangeIframe);v.addEventListener('timeupdate',sendCurrentTimeToTop);const nS=state.videoContainer.querySelectorAll('.jw-texttrack-display,.jw-captions,.plyr__captions,.vjs-text-track-display');nS.forEach(e=>hideElementAggressively(e,'init find'));if(v.textTracks)Array.from(v.textTracks).forEach(t=>disableTextTrack(t,'init'));if(!state.mutationObserver&&state.videoContainer){state.mutationObserver=new MutationObserver(handleMutations);state.mutationObserver.observe(state.videoContainer,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class']});}observeTextTracks();sendMessage('videoFound');sendMessage('statusUpdate',{text:'Video found.'});console.log('[Iframe] Video initialized.');return true;}return false;}
+    function findAndInitializeVideo() { if(!state.isEmbedded)return false;console.log('[Iframe] Finding video...');let v=(window.searchForHiddenVideo&&window.searchForHiddenVideo(document))||document.querySelector('video');if(v){state.videoElement=v;let c=v.parentElement;while(c&&!c.classList.contains('jw-media')&&!c.classList.contains('plyr')&&c.tagName!=='BODY')c=c.parentElement;state.videoContainer=c||v.parentElement;if(window.getComputedStyle(state.videoContainer).position==='static')state.videoContainer.style.position='relative';state.videoContainer.classList.add('video-wrapper-migaku');document.addEventListener('fullscreenchange',handleFullscreenChangeIframe);document.addEventListener('webkitfullscreenchange',handleFullscreenChangeIframe);v.addEventListener('timeupdate',sendCurrentTimeToTop);const nS=state.videoContainer.querySelectorAll('.jw-texttrack-display,.jw-captions,.plyr__captions,.vjs-text-track-display');nS.forEach(e=>hideElementAggressively(e,'init find'));if(v.textTracks)Array.from(v.textTracks).forEach(t=>disableTextTrack(t,'init'));if(!state.mutationObserver&&state.videoContainer){state.mutationObserver=new MutationObserver(handleMutations);state.mutationObserver.observe(state.videoContainer,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class']});}observeTextTracks();sendMessage('videoFound');sendMessage('statusUpdate',{text:'Video found.'});console.log('[Iframe] Video initialized.');return true;}return false;}
     function handleFullscreenChangeIframe() { if(!state.isEmbedded)return;const isFs=!!(document.fullscreenElement||document.webkitFullscreenElement);sendMessage('fullscreenChange',{isFullscreen:isFs});console.log(`[Iframe] Fullscreen:${isFs}`);sendCurrentTimeToTop(); }
     function sendCurrentTimeToTop() { if(!state.isEmbedded||!state.videoElement||state.videoElement.readyState===0)return;sendMessage('currentTimeUpdate',{currentTime:state.videoElement.currentTime});}
     function handleMutations(mutationsList,observer){if(!state.isEmbedded)return;for(const m of mutationsList){if(m.type==='childList'){m.addedNodes.forEach(n=>{if(n.nodeType===1){if(n.matches('.jw-texttrack-display,.jw-captions,.plyr__captions,.vjs-text-track-display'))hideElementAggressively(n,'mut:added sub disp');if(n.tagName==='TRACK'&&state.videoElement&&state.videoElement.contains(n)){disableTextTrack(n,'mut:added track');observeTextTrack(n);}n.querySelectorAll('.jw-texttrack-display,.jw-captions,.plyr__captions,.vjs-text-track-display,track').forEach(el=>{if(el.tagName==='TRACK'){disableTextTrack(el,'mut:added track sub');observeTextTrack(el);}else hideElementAggressively(el,'mut:added sub disp sub');});}});}}if(state.videoElement?.textTracks)Array.from(state.videoElement.textTracks).forEach(t=>disableTextTrack(t,'mut:periodic'));}

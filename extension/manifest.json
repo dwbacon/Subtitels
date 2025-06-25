@@ -22,6 +22,7 @@
       ],
       "js": [
         "videoDetection.js",
+        "pageDetection.js",
         "content.js"
       ],
       "run_at": "document_end"

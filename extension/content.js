@@ -556,7 +556,57 @@ const unsafeWindow = window;
     function formatTime(seconds) { const h=Math.floor(seconds/3600),m=Math.floor(seconds%3600/60),s=seconds%60;return `${h>0?h+':':''}${String(m).padStart(2,'0')}:${String(s.toFixed(3)).padStart(6,'0')}`;}
 
     function extractEpisodeNumber(filename) { if (!filename) return null; const lower = filename.toLowerCase(); const patterns = [ /_(\d{1,3})\.(?:srt|vtt|ass|ssa)$/, /-\s*(\d{1,3})\.(?:srt|vtt|ass|ssa)$/, /[^a-z0-9](\d{1,3})\.(?:srt|vtt|ass|ssa)$/, /episode\s*(\d{1,3})/i, /\s-\s*(\d{1,3})\s*(?:\[|\(|$)/, /s\d{1,2}e(\d{1,3})/i, /[^\w-](\d{1,3})(?:[^\w-]|$)/ ]; for (const p of patterns) { const match = lower.match(p); if (match && match[1]) { const ep = parseInt(match[1],10); if (ep > 0 && ep < 1000) return ep; }} return null; }
-    function detectAnimeName() { if (state.isEmbedded || state.ignorePageDetection) return; const txt = document.body.innerText; const regex = /HiAnime is the best site to watch\s+(.+?)\s+(?:SUB|DUB)\s+online/i; const match = txt.match(regex); let newName = null; if (match&&match[1]) newName = match[1].trim(); if (newName && newName !== state.detectedAnimeName) { state.detectedAnimeName = newName; const el=document.getElementById('detected-anime-name'); if(el)el.textContent=state.detectedAnimeName; logToPopup(`Detected anime: ${state.detectedAnimeName}`); attemptToMatchAndLoadCurrentPageDetection(); } else if (!state.detectedAnimeName && newName) { state.detectedAnimeName=newName; const el=document.getElementById('detected-anime-name'); if(el)el.textContent=state.detectedAnimeName; logToPopup(`Initial anime: ${state.detectedAnimeName}`); attemptToMatchAndLoadCurrentPageDetection(); }}
+    function detectAnimeName() {
+        if (state.isEmbedded || state.ignorePageDetection) return;
+        let newName = null;
+
+        // 1) Try meta tags commonly used for titles
+        const metaSelectors = [
+            'meta[property="og:title"]', 'meta[name="title"]',
+            'meta[property="twitter:title"]'
+        ];
+        for (const sel of metaSelectors) {
+            const content = document.querySelector(sel)?.content;
+            if (content) {
+                const m = content.match(/^(.*?)(?:\s+(?:Episode|\||-|$))/i);
+                if (m && m[1]) { newName = m[1].trim(); break; }
+            }
+        }
+
+        // 2) Fallback to document.title
+        if (!newName && document.title) {
+            const m = document.title.match(/^(.*?)(?:\s+(?:Episode|\||-|$))/i);
+            if (m && m[1]) newName = m[1].trim();
+        }
+
+        // 3) Check common header elements
+        if (!newName) {
+            const heading = document.querySelector('h1, h2');
+            if (heading) newName = heading.textContent.trim();
+        }
+
+        // 4) Final fallback: derive from URL slug
+        if (!newName) {
+            const slugMatch = window.location.pathname.match(/\/anime\/([^\/]+)/);
+            if (slugMatch && slugMatch[1]) newName = slugMatch[1].replace(/-/g, ' ');
+        }
+
+        if (!newName) return;
+
+        if (newName !== state.detectedAnimeName) {
+            state.detectedAnimeName = newName;
+            const el = document.getElementById('detected-anime-name');
+            if (el) el.textContent = state.detectedAnimeName;
+            logToPopup(`Detected anime: ${state.detectedAnimeName}`);
+            attemptToMatchAndLoadCurrentPageDetection();
+        } else if (!state.detectedAnimeName && newName) {
+            state.detectedAnimeName = newName;
+            const el = document.getElementById('detected-anime-name');
+            if (el) el.textContent = state.detectedAnimeName;
+            logToPopup(`Initial anime: ${state.detectedAnimeName}`);
+            attemptToMatchAndLoadCurrentPageDetection();
+        }
+    }
     function detectEpisode() { if (state.isEmbedded || state.ignorePageDetection) return; const txt = document.body.innerText; const regex = /You are watching\s*Episode\s*(\d+)/i; const match = txt.match(regex); let newEp = null; if (match&&match[1]) newEp = parseInt(match[1],10); if (newEp !== null && newEp !== state.detectedEpisode) { state.detectedEpisode=newEp; const el=document.getElementById('detected-episode'); if(el)el.textContent=state.detectedEpisode; logToPopup(`Detected ep: ${state.detectedEpisode}`); attemptToMatchAndLoadCurrentPageDetection(); } else if (state.detectedEpisode === null && newEp !== null) { state.detectedEpisode=newEp; const el=document.getElementById('detected-episode'); if(el)el.textContent=state.detectedEpisode; logToPopup(`Initial ep: ${state.detectedEpisode}`); attemptToMatchAndLoadCurrentPageDetection(); }}
 
     function hideElementAggressively(element, reason) { if (!element) return; element.style.setProperty('display', 'none', 'important'); element.style.setProperty('visibility', 'hidden', 'important'); element.style.setProperty('pointer-events', 'none', 'important'); console.log(`[Iframe] Hid: ${element.tagName}${element.id?'#'+element.id:''}${element.className?'.'+element.className.split(' ').join('.'):''} (${reason})`); }

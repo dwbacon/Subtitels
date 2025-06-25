@@ -126,36 +126,36 @@ const unsafeWindow = window;
     GM_addStyle(`
         /* Error Bar Styles */
         #migaku-error-bar { background-color: #f44336; color: white; padding: 10px; margin-bottom: 10px; border-radius: 4px; position: relative; font-size: 13px; line-height: 1.4; display: none; box-sizing: border-box; }
-        #migaku-controller.dark-mode #migaku-error-bar { background-color: #c62828; color: #f0f0f0; }
+        #migaku-controller.dark-mode #migaku-error-bar { background-color: #c62828; color: #E5E5EA; }
         #migaku-error-message { margin-right: 25px; display: block; }
         #migaku-dismiss-error { position: absolute; top: 50%; right: 10px; transform: translateY(-50%); background: none !important; border: none !important; color: white !important; font-size: 20px !important; cursor: pointer; padding: 0 5px !important; line-height: 1 !important; margin: 0 !important; min-width: auto !important; }
-        #migaku-controller.dark-mode #migaku-dismiss-error { color: #f0f0f0 !important; }
+        #migaku-controller.dark-mode #migaku-dismiss-error { color: #E5E5EA !important; }
 
         /* Controller styles */
-        #migaku-controller { position: fixed; bottom: 10px; right: 10px; background-color: #FFFFFF; color: #333; padding: 15px; border-radius: 8px; z-index: 10001; width: 380px; max-height: 90vh; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); transition: width 0.2s ease, height 0.2s ease, background-color 0.2s ease, color 0.2s ease; resize: both; overflow: hidden; min-width: 280px; min-height: 180px; display: flex; flex-direction: column; border: 1px solid #ccc; }
-        #migaku-controller.dark-mode { background-color: #2c2c2c; color: #eee; border-color: #555; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5); }
-        #migaku-controller.dark-mode h3, #migaku-controller.dark-mode label { color: #ccc; }
+        #migaku-controller { position: fixed; bottom: 10px; right: 10px; background-color: #F5F5F7; color: #1D1D1F; padding: 15px; border-radius: 8px; z-index: 10001; width: 380px; max-height: 90vh; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); transition: width 0.2s ease, height 0.2s ease, background-color 0.2s ease, color 0.2s ease; resize: both; overflow: hidden; min-width: 280px; min-height: 180px; display: flex; flex-direction: column; border: 1px solid #D1D1D6; }
+        #migaku-controller.dark-mode { background-color: #1C1C1E; color: #E5E5EA; border-color: #3A3A3C; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5); }
+        #migaku-controller.dark-mode h3, #migaku-controller.dark-mode label { color: #D1D1D6; }
         #migaku-controller.dark-mode .controller-nav button { color: #bbb; }
-        #migaku-controller.dark-mode .controller-nav button:hover { color: #eee; }
+        #migaku-controller.dark-mode .controller-nav button:hover { color: #E5E5EA; }
         #migaku-controller.dark-mode .controller-nav button.active { color: #4CAF50; border-bottom-color: #4CAF50; }
-        #migaku-controller.dark-mode input[type="file"], #migaku-controller.dark-mode input[type="range"], #migaku-controller.dark-mode input[type="number"], #migaku-controller.dark-mode input[type="color"], #migaku-controller.dark-mode select { background-color: #3a3a3a; border-color: #555; color: #eee; }
-        #migaku-controller.dark-mode .sync-value, #migaku-controller.dark-mode .font-size-value { color: #eee; }
-        #migaku-controller.dark-mode .log-area { background-color: #3a3a3a; border-top-color: #555; color: #bbb; }
-        #migaku-controller.dark-mode .log-area strong { color: #eee; }
-        #migaku-controller.dark-mode .settings-row label { color: #ccc; }
+        #migaku-controller.dark-mode input[type="file"], #migaku-controller.dark-mode input[type="range"], #migaku-controller.dark-mode input[type="number"], #migaku-controller.dark-mode input[type="color"], #migaku-controller.dark-mode select { background-color: #2C2C2E; border-color: #3A3A3C; color: #E5E5EA; }
+        #migaku-controller.dark-mode .sync-value, #migaku-controller.dark-mode .font-size-value { color: #E5E5EA; }
+        #migaku-controller.dark-mode .log-area { background-color: #2C2C2E; border-top-color: #3A3A3C; color: #bbb; }
+        #migaku-controller.dark-mode .log-area strong { color: #E5E5EA; }
+        #migaku-controller.dark-mode .settings-row label { color: #D1D1D6; }
         #migaku-controller.dark-mode .settings-row span { color: #bbb; }
-        #migaku-controller.dark-mode #page-about h4 { color: #ccc; }
+        #migaku-controller.dark-mode #page-about h4 { color: #D1D1D6; }
         #migaku-controller.dark-mode #page-about p { color: #bbb; }
         #migaku-controller.dark-mode #page-about a { color: #66bb6a; }
-        #migaku-controller.dark-mode .advanced-settings-header { color: #ccc; }
+        #migaku-controller.dark-mode .advanced-settings-header { color: #D1D1D6; }
         #migaku-controller.dark-mode .advanced-settings-header button { color: #bbb; }
         #migaku-controller.minimized { min-width: 50px !important; min-height: 30px !important; width: 50px !important; height: 30px !important; overflow: hidden !important; resize: none; padding: 5px; }
         #migaku-controller.minimized .controller-content, #migaku-controller.minimized .log-area, #migaku-controller.minimized .controller-nav, #migaku-controller.minimized #migaku-error-bar, #migaku-controller.minimized h3 { display: none; }
         #migaku-toggle-btn { position: absolute; top: 12px; right: 12px; background: none; border: none; color: inherit; font-size: 18px; cursor: pointer; padding: 0; margin: 0; width: 20px; height: 20px; line-height: 20px; text-align: center; z-index: 1; }
-        #migaku-controller h3 { padding-right: 35px; margin-top: 0; margin-bottom: 10px; font-size: 18px; color: #555; }
-        .controller-nav { display: flex; justify-content: space-around; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 8px; }
-        #migaku-controller.dark-mode .controller-nav { border-bottom-color: #555; }
-        .controller-nav button { background: none; border: none; color: #555; cursor: pointer; font-size: 13px; padding: 5px 6px; transition: color 0.2s ease, border-bottom-color 0.2s ease; flex-grow: 1; text-align: center; white-space: nowrap; }
+        #migaku-controller h3 { padding-right: 35px; margin-top: 0; margin-bottom: 10px; font-size: 18px; color: #3A3A3C; }
+        .controller-nav { display: flex; justify-content: space-around; margin-bottom: 15px; border-bottom: 1px solid #E5E5EA; padding-bottom: 8px; }
+        #migaku-controller.dark-mode .controller-nav { border-bottom-color: #3A3A3C; }
+        .controller-nav button { background: none; border: none; color: #3A3A3C; cursor: pointer; font-size: 13px; padding: 5px 6px; transition: color 0.2s ease, border-bottom-color 0.2s ease; flex-grow: 1; text-align: center; white-space: nowrap; }
         .controller-nav button:hover { color: #000; }
         .controller-nav button.active { color: #4CAF50; border-bottom: 2px solid #4CAF50; }
         .controller-content { flex-grow: 1; overflow-y: auto; padding-right: 5px; padding-bottom: 15px; box-sizing: border-box; overflow-x: hidden; }
@@ -169,97 +169,97 @@ const unsafeWindow = window;
         #migaku-controller label { display: block; margin-bottom: 6px; font-size: 14px; color: #444; }
         #migaku-controller button { background-color: #4CAF50; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-size: 13px; transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease; border: 1px solid transparent; }
         #migaku-controller button:hover { background-color: #45a049; color: white; border-color: transparent; }
-        #migaku-controller.dark-mode button { background-color: #3a3a3a; color: #eee; border-color: #555; }
-        #migaku-controller.dark-mode button:hover { background-color: #555; color: #fff; border-color: #66bb6a; }
+        #migaku-controller.dark-mode button { background-color: #2C2C2E; color: #E5E5EA; border-color: #3A3A3C; }
+        #migaku-controller.dark-mode button:hover { background-color: #3A3A3C; color: #fff; border-color: #66bb6a; }
         #migaku-controller #clear-subtitles, #migaku-controller #clear-sync-points, #page-saved .delete-anime-btn, #page-saved .delete-import-btn, #page-saved .delete-file-btn { background-color: #f44336 !important; }
         #migaku-controller #clear-subtitles:hover, #migaku-controller #clear-sync-points:hover, #page-saved .delete-anime-btn:hover, #page-saved .delete-import-btn:hover, #page-saved .delete-file-btn:hover { background-color: #d32f2f !important; }
         #migaku-controller.dark-mode #clear-subtitles, #migaku-controller.dark-mode #clear-sync-points, #migaku-controller.dark-mode #page-saved .delete-anime-btn, #migaku-controller.dark-mode #page-saved .delete-import-btn, #migaku-controller.dark-mode #page-saved .delete-file-btn { background-color: #5a2d2d !important; border-color: #795548 !important; }
         #migaku-controller.dark-mode #clear-subtitles:hover, #migaku-controller.dark-mode #clear-sync-points:hover, #migaku-controller.dark-mode #page-saved .delete-anime-btn:hover, #migaku-controller.dark-mode #page-saved .delete-import-btn:hover, #migaku-controller.dark-mode #page-saved .delete-file-btn:hover { background-color: #795548 !important; border-color: #f44336 !important; }
-        #migaku-controller input[type="file"] { width: 100%; margin-bottom: 8px; font-size: 12px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 3px; padding: 6px; background-color: #f9f9f9; }
-        .sync-value, .font-size-value { display: inline-block; width: 35px; text-align: right; font-weight: bold; color: #333; flex-shrink: 0; margin-left: auto; }
-        #migaku-controller.dark-mode .sync-value, #migaku-controller.dark-mode .font-size-value { color: #eee; }
-        #subtitle-font-size, #vertical-position, #manual-sync-offset, #subtitle-background-opacity { width: calc(100% - 50px); vertical-align: middle; -webkit-appearance: none; appearance: none; height: 6px; background: #ddd; outline: none; opacity: 0.9; transition: opacity .2s; border-radius: 3px; flex-grow: 1; }
-        #migaku-controller.dark-mode #subtitle-font-size, #migaku-controller.dark-mode #vertical-position, #migaku-controller.dark-mode #manual-sync-offset, #migaku-controller.dark-mode #subtitle-background-opacity { background: #555; }
+        #migaku-controller input[type="file"] { width: 100%; margin-bottom: 8px; font-size: 12px; box-sizing: border-box; border: 1px solid #D1D1D6; border-radius: 3px; padding: 6px; background-color: #F2F2F7; }
+        .sync-value, .font-size-value { display: inline-block; width: 35px; text-align: right; font-weight: bold; color: #1D1D1F; flex-shrink: 0; margin-left: auto; }
+        #migaku-controller.dark-mode .sync-value, #migaku-controller.dark-mode .font-size-value { color: #E5E5EA; }
+        #subtitle-font-size, #vertical-position, #manual-sync-offset, #subtitle-background-opacity { width: calc(100% - 50px); vertical-align: middle; -webkit-appearance: none; appearance: none; height: 6px; background: #D1D1D6; outline: none; opacity: 0.9; transition: opacity .2s; border-radius: 3px; flex-grow: 1; }
+        #migaku-controller.dark-mode #subtitle-font-size, #migaku-controller.dark-mode #vertical-position, #migaku-controller.dark-mode #manual-sync-offset, #migaku-controller.dark-mode #subtitle-background-opacity { background: #3A3A3C; }
         #migaku-controller input[type="range"]:hover { opacity: 1; }
         #migaku-controller input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; background: #4CAF50; cursor: pointer; border-radius: 50%; transition: background-color 0.2s ease; }
         #migaku-controller input[type="range"]::-webkit-slider-thumb:hover { background-color: #388E3C; }
         #migaku-controller input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: #4CAF50; cursor: pointer; border-radius: 50%; transition: background-color 0.2s ease; }
         #migaku-controller input[type="range"]::-moz-range-thumb:hover { background-color: #388E3C; }
-        .log-area { margin-top: 15px; padding-top: 10px; border-top: 1px solid #eee; font-size: 10px; height: 120px; overflow-y: auto; color: #555; white-space: pre-wrap; word-break: break-all; background-color: #f9f9f9; padding: 10px; border-radius: 4px; box-sizing: border-box; }
-        #migaku-controller.dark-mode .log-area { border-top-color: #555; background-color: #3a3a3a; color: #bbb; }
-        .log-area strong { color: #333; }
-        #migaku-controller.dark-mode .log-area strong { color: #eee; }
+        .log-area { margin-top: 15px; padding-top: 10px; border-top: 1px solid #E5E5EA; font-size: 10px; height: 120px; overflow-y: auto; color: #3A3A3C; white-space: pre-wrap; word-break: break-all; background-color: #F2F2F7; padding: 10px; border-radius: 4px; box-sizing: border-box; }
+        #migaku-controller.dark-mode .log-area { border-top-color: #3A3A3C; background-color: #2C2C2E; color: #bbb; }
+        .log-area strong { color: #1D1D1F; }
+        #migaku-controller.dark-mode .log-area strong { color: #E5E5EA; }
         .settings-row { margin-bottom: 12px; display: flex; align-items: center; width: 100%; box-sizing: border-box; }
         .settings-row label { display: inline-block; width: 120px; margin-right: 10px; font-size: 14px; color: #444; flex-shrink: 0; }
-        #migaku-controller.dark-mode .settings-row label { color: #ccc; }
-        .settings-row input[type="color"], .settings-row input[type="number"], .settings-row input[type="range"], .settings-row input[type="checkbox"], .settings-row select { vertical-align: middle; height: 28px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; background-color: #f9f9f9; flex-grow: 1; }
-        #migaku-controller.dark-mode input[type="color"], #migaku-controller.dark-mode input[type="number"], #migaku-controller.dark-mode input[type="range"], #migaku-controller.dark-mode select { background-color: #3a3a3a; border-color: #555; color: #eee; }
+        #migaku-controller.dark-mode .settings-row label { color: #D1D1D6; }
+        .settings-row input[type="color"], .settings-row input[type="number"], .settings-row input[type="range"], .settings-row input[type="checkbox"], .settings-row select { vertical-align: middle; height: 28px; padding: 4px; border: 1px solid #D1D1D6; border-radius: 4px; background-color: #F2F2F7; flex-grow: 1; }
+        #migaku-controller.dark-mode input[type="color"], #migaku-controller.dark-mode input[type="number"], #migaku-controller.dark-mode input[type="range"], #migaku-controller.dark-mode select { background-color: #2C2C2E; border-color: #3A3A3C; color: #E5E5EA; }
         .settings-row input[type="number"] { width: 70px; flex-grow: 0; }
         .settings-row input[type="checkbox"]#dark-mode-toggle, .settings-row input[type="checkbox"]#ignore-page-detection-toggle { flex-grow: 0; width: auto; height: auto; padding: 0; margin: 0 5px 0 0; border: none; background: none; appearance: checkbox; -webkit-appearance: checkbox; vertical-align: middle;}
         .settings-row input[type="range"] { padding: 0; }
-        .settings-row span { margin-left: 8px; font-size: 13px; color: #555; flex-grow: 1; word-break: break-word; }
+        .settings-row span { margin-left: 8px; font-size: 13px; color: #3A3A3C; flex-grow: 1; word-break: break-word; }
         #migaku-controller.dark-mode .settings-row span { color: #bbb; }
-        #page-about h4 { margin-top: 0; margin-bottom: 10px; color: #555; }
-        #migaku-controller.dark-mode #page-about h4 { color: #ccc; }
+        #page-about h4 { margin-top: 0; margin-bottom: 10px; color: #3A3A3C; }
+        #migaku-controller.dark-mode #page-about h4 { color: #D1D1D6; }
         #page-about p { margin-bottom: 8px; font-size: 13px; line-height: 1.4; color: #444; }
         #migaku-controller.dark-mode #page-about p { color: #bbb; }
         #page-about a { color: #4CAF50; text-decoration: none; transition: color 0.2s ease; }
         #page-about a:hover { color: #388E3C; text-decoration: underline; }
         #migaku-controller.dark-mode #page-about a { color: #66bb6a; }
-        .advanced-settings-header { margin-top: 15px; margin-bottom: 10px; font-size: 16px; font-weight: bold; cursor: pointer; color: #555; display: flex; align-items: center; }
-        #migaku-controller.dark-mode .advanced-settings-header { color: #ccc; }
-        .advanced-settings-header button { background: none; border: none; font-size: 18px; margin-left: 5px; padding: 0; cursor: pointer; color: #555; }
+        .advanced-settings-header { margin-top: 15px; margin-bottom: 10px; font-size: 16px; font-weight: bold; cursor: pointer; color: #3A3A3C; display: flex; align-items: center; }
+        #migaku-controller.dark-mode .advanced-settings-header { color: #D1D1D6; }
+        .advanced-settings-header button { background: none; border: none; font-size: 18px; margin-left: 5px; padding: 0; cursor: pointer; color: #3A3A3C; }
         #migaku-controller.dark-mode .advanced-settings-header button { color: #bbb; }
-        .advanced-settings-content { display: none; padding-left: 10px; border-left: 2px solid #eee; padding-top: 5px; }
-        #migaku-controller.dark-mode .advanced-settings-content { border-left-color: #555; }
+        .advanced-settings-content { display: none; padding-left: 10px; border-left: 2px solid #E5E5EA; padding-top: 5px; }
+        #migaku-controller.dark-mode .advanced-settings-content { border-left-color: #3A3A3C; }
         .advanced-settings-content.active { display: block; }
         #subtitle-file-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); z-index: 10002; display: none; justify-content: center; align-items: center; }
         #subtitle-file-modal-content { background-color: #fff; padding: 20px; border-radius: 8px; max-width: 80%; max-height: 80%; overflow: auto; position: relative; }
-        #migaku-controller.dark-mode #subtitle-file-modal-content { background-color: #3a3a3a; color: #eee; }
-        #subtitle-file-modal-content pre { white-space: pre-wrap; word-break: break-all; font-size: 12px; color: #333; }
-        #migaku-controller.dark-mode #subtitle-file-modal-content pre { color: #eee; }
-        #subtitle-file-modal-close { position: absolute; top: 10px; right: 10px; font-size: 20px; cursor: pointer; color: #333; }
-        #migaku-controller.dark-mode #subtitle-file-modal-close { color: #eee; }
+        #migaku-controller.dark-mode #subtitle-file-modal-content { background-color: #2C2C2E; color: #E5E5EA; }
+        #subtitle-file-modal-content pre { white-space: pre-wrap; word-break: break-all; font-size: 12px; color: #1D1D1F; }
+        #migaku-controller.dark-mode #subtitle-file-modal-content pre { color: #E5E5EA; }
+        #subtitle-file-modal-close { position: absolute; top: 10px; right: 10px; font-size: 20px; cursor: pointer; color: #1D1D1F; }
+        #migaku-controller.dark-mode #subtitle-file-modal-close { color: #E5E5EA; }
         #sync-point-selection-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); z-index: 10003; display: none; justify-content: center; align-items: center; }
         #sync-point-selection-content { background-color: #fff; padding: 20px; border-radius: 8px; max-width: 90%; max-height: 90%; overflow-y: auto; position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-        #migaku-controller.dark-mode #sync-point-selection-content { background-color: #3a3a3a; color: #eee; }
-        #sync-point-selection-content h4 { margin-top: 0; margin-bottom: 15px; color: #555; font-size: 16px; }
-        #migaku-controller.dark-mode #sync-point-selection-content h4 { color: #ccc; }
-        #sync-point-selection-list div { padding: 8px; margin-bottom: 5px; border: 1px solid #eee; border-radius: 4px; cursor: pointer; transition: background-color 0.2s ease; font-size: 13px; line-height: 1.4; color: #333; white-space: pre-wrap; word-break: break-word; }
-        #migaku-controller.dark-mode #sync-point-selection-list div { border-color: #555; color: #bbb; }
-        #sync-point-selection-list div:hover { background-color: #e0e0e0; }
-        #migaku-controller.dark-mode #sync-point-selection-list div:hover { background-color: #555; }
-        #sync-point-selection-close { position: absolute; top: 10px; right: 10px; font-size: 20px; cursor: pointer; color: #333; }
-        #migaku-controller.dark-mode #sync-point-selection-close { color: #eee; }
+        #migaku-controller.dark-mode #sync-point-selection-content { background-color: #2C2C2E; color: #E5E5EA; }
+        #sync-point-selection-content h4 { margin-top: 0; margin-bottom: 15px; color: #3A3A3C; font-size: 16px; }
+        #migaku-controller.dark-mode #sync-point-selection-content h4 { color: #D1D1D6; }
+        #sync-point-selection-list div { padding: 8px; margin-bottom: 5px; border: 1px solid #E5E5EA; border-radius: 4px; cursor: pointer; transition: background-color 0.2s ease; font-size: 13px; line-height: 1.4; color: #1D1D1F; white-space: pre-wrap; word-break: break-word; }
+        #migaku-controller.dark-mode #sync-point-selection-list div { border-color: #3A3A3C; color: #bbb; }
+        #sync-point-selection-list div:hover { background-color: #D1D1D6; }
+        #migaku-controller.dark-mode #sync-point-selection-list div:hover { background-color: #3A3A3C; }
+        #sync-point-selection-close { position: absolute; top: 10px; right: 10px; font-size: 20px; cursor: pointer; color: #1D1D1F; }
+        #migaku-controller.dark-mode #sync-point-selection-close { color: #E5E5EA; }
         #migaku-subtitle-display-wrapper { position: fixed; left: 0; right: 0; display: flex; justify-content: center; align-items: center; pointer-events: none; z-index: 10000; text-align: center; width: 100%; height: auto; box-sizing: border-box; top: auto; bottom: 15%; }
         #migaku-subtitle-display-wrapper .migaku-subtitle-text { display: inline-block; background-color: rgba(0,0,0,0.7); color: white; padding: 10px 15px; border-radius: 5px; max-width: 80%; text-align: center; font-size: ${state.fontSizeValue}px; font-family: inherit; text-shadow: 1px 1px 1px rgba(0,0,0,0.8); pointer-events: auto; white-space: pre-line; line-height: 1.4; box-shadow: 0 2px 5px rgba(0,0,0,0.5); word-wrap: break-word; }
         .native-subtitle-hint { font-style: italic; color: #888; margin-bottom: 10px; font-size: 12px; }
         #migaku-controller.dark-mode .native-subtitle-hint { color: #bbb; }
         #sync-points-display-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); z-index: 10004; display: none; justify-content: center; align-items: center; }
         #sync-points-display-content { background-color: #fff; padding: 20px; border-radius: 8px; max-width: 90%; max-height: 90%; overflow-y: auto; position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-        #migaku-controller.dark-mode #sync-points-display-content { background-color: #3a3a3a; color: #eee; }
-        #sync-points-display-content h4 { margin-top: 0; margin-bottom: 15px; color: #555; font-size: 16px; }
-        #migaku-controller.dark-mode #sync-points-display-content h4 { color: #ccc; }
-        #sync-points-list-display div { padding: 8px; margin-bottom: 5px; border: 1px solid #eee; border-radius: 4px; font-size: 13px; line-height: 1.4; color: #333; white-space: pre-wrap; word-break: break-word; display: flex; justify-content: space-between; align-items: center; }
-        #migaku-controller.dark-mode #sync-points-list-display div { border-color: #555; color: #bbb; }
+        #migaku-controller.dark-mode #sync-points-display-content { background-color: #2C2C2E; color: #E5E5EA; }
+        #sync-points-display-content h4 { margin-top: 0; margin-bottom: 15px; color: #3A3A3C; font-size: 16px; }
+        #migaku-controller.dark-mode #sync-points-display-content h4 { color: #D1D1D6; }
+        #sync-points-list-display div { padding: 8px; margin-bottom: 5px; border: 1px solid #E5E5EA; border-radius: 4px; font-size: 13px; line-height: 1.4; color: #1D1D1F; white-space: pre-wrap; word-break: break-word; display: flex; justify-content: space-between; align-items: center; }
+        #migaku-controller.dark-mode #sync-points-list-display div { border-color: #3A3A3C; color: #bbb; }
         #sync-points-list-display div button { background-color: #f44336; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; flex-shrink: 0; }
         #migaku-controller.dark-mode #sync-points-list-display div button { background-color: #5a2d2d; border-color: #795548; }
         #sync-points-list-display div button:hover { background-color: #d32f2f; }
         #migaku-controller.dark-mode #sync-points-list-display div button:hover { background-color: #795548; border-color: #f44336; }
-        #sync-points-display-close { position: absolute; top: 10px; right: 10px; font-size: 20px; cursor: pointer; color: #333; }
-        #migaku-controller.dark-mode #sync-points-display-close { color: #eee; }
+        #sync-points-display-close { position: absolute; top: 10px; right: 10px; font-size: 20px; cursor: pointer; color: #1D1D1F; }
+        #migaku-controller.dark-mode #sync-points-display-close { color: #E5E5EA; }
 
         /* Saved Page - New Layout & Button Size Fix */
         #page-saved { display: flex; flex-direction: column; height: 100%; }
         .saved-page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-shrink: 0; }
         .saved-columns-container { display: flex; flex-grow: 1; overflow: hidden; gap: 10px;}
-        #saved-anime-column { width: 40%; overflow-y: auto; border-right: 1px solid #ccc; padding-right: 10px; box-sizing: border-box; }
+        #saved-anime-column { width: 40%; overflow-y: auto; border-right: 1px solid #D1D1D6; padding-right: 10px; box-sizing: border-box; }
         #saved-imports-column { width: 60%; overflow-y: auto; box-sizing: border-box; }
-        #migaku-controller.dark-mode #saved-anime-column { border-right-color: #555; }
-        #page-saved .anime-list-item, #page-saved .import-session-item { padding: 6px 8px; margin-bottom: 5px; border: 1px solid #eee; border-radius: 4px; cursor: pointer; transition: background-color 0.2s ease; position: relative; display: flex; align-items: center; }
-        #migaku-controller.dark-mode #page-saved .anime-list-item, #migaku-controller.dark-mode #page-saved .import-session-item { border-color: #555; }
-        #page-saved .anime-list-item:hover, #page-saved .import-session-item:hover { background-color: #f0f0f0; }
-        #migaku-controller.dark-mode #page-saved .anime-list-item:hover, #migaku-controller.dark-mode #page-saved .import-session-item:hover { background-color: #4a4a4a; }
+        #migaku-controller.dark-mode #saved-anime-column { border-right-color: #3A3A3C; }
+        #page-saved .anime-list-item, #page-saved .import-session-item { padding: 6px 8px; margin-bottom: 5px; border: 1px solid #E5E5EA; border-radius: 4px; cursor: pointer; transition: background-color 0.2s ease; position: relative; display: flex; align-items: center; }
+        #migaku-controller.dark-mode #page-saved .anime-list-item, #migaku-controller.dark-mode #page-saved .import-session-item { border-color: #3A3A3C; }
+        #page-saved .anime-list-item:hover, #page-saved .import-session-item:hover { background-color: #E5E5EA; }
+        #migaku-controller.dark-mode #page-saved .anime-list-item:hover, #migaku-controller.dark-mode #page-saved .import-session-item:hover { background-color: #48484A; }
         #page-saved .anime-list-item.active-selection, #page-saved .import-session-item.active-selection { background-color: #d1e7dd; border-left: 3px solid #4CAF50; padding-left: 5px; }
         #migaku-controller.dark-mode #page-saved .anime-list-item.active-selection, #migaku-controller.dark-mode #page-saved .import-session-item.active-selection { background-color: #3e5247; border-left-color: #66bb6a; }
         #page-saved h4, #page-saved h5 { margin-bottom: 10px; }
@@ -276,24 +276,24 @@ const unsafeWindow = window;
         #no-saved-anime-message { text-align: center; margin-top: 20px; color: #777; }
         #migaku-controller.dark-mode #no-saved-anime-message { color: #aaa; }
         #page-saved .edit-input { width: 100%; padding: 4px; font-size: inherit; background-color: inherit; color: inherit; border: 1px solid #888; border-radius:3px; box-sizing:border-box; margin-top:2px; }
-        #migaku-controller.dark-mode #page-saved .edit-input { border-color: #666; background-color: #424242; }
+        #migaku-controller.dark-mode #page-saved .edit-input { border-color: #666; background-color: #3A3A3C; }
         #saved-page-edit-toggle { margin-left: auto; font-size: 12px !important; padding: 4px 8px !important;}
 
         /* Files Display Modal */
         #files-display-modal { position: fixed; top:0; left:0; width:100%; height:100%; background-color: rgba(0,0,0,0.75); z-index: 10005; display:none; justify-content:center; align-items:center; }
         #files-display-modal-content { background-color: #fff; padding: 20px; border-radius:8px; max-width: 700px; width:90%; max-height: 80vh; display:flex; flex-direction:column; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-        #migaku-controller.dark-mode #files-display-modal-content { background-color: #2d2d2d; color: #eee; border: 1px solid #555; }
-        #files-display-modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom: 1px solid #eee; padding-bottom:10px;}
-        #migaku-controller.dark-mode #files-display-modal-header { border-bottom-color: #555; }
+        #migaku-controller.dark-mode #files-display-modal-content { background-color: #1C1C1E; color: #E5E5EA; border: 1px solid #3A3A3C; }
+        #files-display-modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom: 1px solid #E5E5EA; padding-bottom:10px;}
+        #migaku-controller.dark-mode #files-display-modal-header { border-bottom-color: #3A3A3C; }
         #files-display-modal-title { font-size: 1.2em; margin:0; }
         #files-display-modal-close { font-size:1.5em; cursor:pointer; background:none; border:none; color:inherit; padding:0 5px; }
-        #files-list-in-modal { flex-grow:1; overflow-y:auto; border: 1px solid #ddd; padding: 10px; border-radius: 4px; background-color: #f9f9f9;}
-        #migaku-controller.dark-mode #files-list-in-modal { border-color: #555; background-color: #222; }
-        #files-list-in-modal .file-item { display:flex; justify-content:space-between; align-items:center; padding: 8px 6px; border-bottom: 1px solid #eee; }
+        #files-list-in-modal { flex-grow:1; overflow-y:auto; border: 1px solid #D1D1D6; padding: 10px; border-radius: 4px; background-color: #F2F2F7;}
+        #migaku-controller.dark-mode #files-list-in-modal { border-color: #3A3A3C; background-color: #1C1C1E; }
+        #files-list-in-modal .file-item { display:flex; justify-content:space-between; align-items:center; padding: 8px 6px; border-bottom: 1px solid #E5E5EA; }
         #migaku-controller.dark-mode #files-list-in-modal .file-item { border-bottom-color: #444; }
         #files-list-in-modal .file-item:last-child { border-bottom: none; }
         #files-list-in-modal .file-item-name { flex-grow:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-right:10px; font-size: 0.95em; }
-        #files-list-in-modal .file-item-details { font-size:0.8em; color:#555; margin-right:10px; white-space:nowrap; }
+        #files-list-in-modal .file-item-details { font-size:0.8em; color:#3A3A3C; margin-right:10px; white-space:nowrap; }
         #migaku-controller.dark-mode #files-list-in-modal .file-item-details { color:#bbb; }
         #files-list-in-modal .file-item-actions { display: flex; align-items: center; } /* Ensure buttons in actions div are aligned */
         #files-list-in-modal .file-item-actions button { margin-left: 5px; padding: 4px 8px !important; font-size: 11px !important; }

@@ -151,7 +151,7 @@ const unsafeWindow = window;
         #migaku-controller.dark-mode .advanced-settings-header button { color: #bbb; }
         #migaku-controller.minimized { min-width: 50px !important; min-height: 30px !important; width: 50px !important; height: 30px !important; overflow: hidden !important; resize: none; padding: 5px; }
         #migaku-controller.minimized .controller-content, #migaku-controller.minimized .log-area, #migaku-controller.minimized .controller-nav, #migaku-controller.minimized #migaku-error-bar, #migaku-controller.minimized h3 { display: none; }
-        #migaku-toggle-btn { position: absolute; top: 12px; right: 12px; background: none; border: none; color: inherit; font-size: 18px; cursor: pointer; padding: 0; margin: 0; width: 20px; height: 20px; line-height: 20px; text-align: center; z-index: 1; }
+        #migaku-toggle-btn { position: absolute; top: 12px; right: 12px; background: none; border: none; color: inherit; font-size: 18px; cursor: pointer; padding: 0; margin: 0; width: 20px; height: 20px; line-height: 20px; text-align: center; z-index: 1; display: flex; align-items: center; justify-content: center; }
         #migaku-controller h3 { padding-right: 35px; margin-top: 0; margin-bottom: 10px; font-size: 18px; color: #555; }
         .controller-nav { display: flex; justify-content: space-around; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 8px; }
         #migaku-controller.dark-mode .controller-nav { border-bottom-color: #555; }
